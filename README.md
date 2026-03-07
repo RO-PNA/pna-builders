@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PNA Builders
 
-## Getting Started
+**PNA(Penguins Never Alone)**는 대학 동문 기반의 테크 커뮤니티 플랫폼입니다. AI·실리콘밸리 트렌드를 중심으로 콘텐츠를 아카이빙하고, 멤버 간 토론과 네트워킹을 지원합니다.
 
-First, run the development server:
+## 주요 서비스
+
+### 콘텐츠 아카이브 + 토론
+- 하나의 콘텐츠에 **복수의 자료를 연결**할 수 있는 구조 (GeekNews와의 차별점)
+- 카테고리·태그 기반 콘텐츠 필터링
+- 오픈채팅방 대화 내역 정리 및 아카이빙
+
+### 온톨로지
+- 콘텐츠 간 관계를 시각화하는 지식 그래프
+
+### AI Now
+- AI 분야의 메인 흐름과 트렌드 변화 추적
+- AI 관련 논문 요약
+- 타임라인 기반 기술 트렌드 시각화
+
+### 실리콘밸리 트렌드
+- 최신 실리콘밸리 소식 큐레이션
+
+### 디지털 명함 & 온보딩
+- 회원가입 시 디지털 명함 생성
+- 펭귄 브랜딩을 활용한 인터랙티브 캐릭터 커스터마이징
+- NFC 명함/포토카드 연동
+
+### 기타
+- 꼬리미션 챗봇
+- 대학별 카카오톡 오픈채팅방 정보
+- 솔로프러너 네트워크(사푼사프) 연계
+
+## 기술 스택
+
+- **Frontend**: Next.js 16, React 19, TypeScript
+- **스타일링**: Tailwind CSS 4
+- **백엔드/DB**: Supabase (PostgreSQL, Auth, RLS)
+- **분석**: GTM / GA4, SEO / GEO
+
+## 시작하기
 
 ```bash
+# 의존성 설치
+npm install
+
+# 개발 서버 실행
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000)에서 확인할 수 있습니다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Supabase 환경 변수 설정과 `schema.sql` 실행이 필요합니다.

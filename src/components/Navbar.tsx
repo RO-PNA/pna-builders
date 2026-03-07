@@ -17,16 +17,18 @@ export default async function Navbar() {
           </Link>
           <span className="font-bold">News App</span>
           <nav className="hidden md:flex space-x-2 text-sm">
-            <Link href="/" className="hover:underline">new</Link>
+            <Link href="/" className="hover:underline">knowledge</Link>
             <span>|</span>
-            <Link href="/comments" className="hover:underline">comments</Link>
-            <span>|</span>
-            <Link href="/submit" className="hover:underline">submit</Link>
+            <Link href="/chatbot" className="hover:underline">chatbot</Link>
           </nav>
         </div>
         <div className="flex items-center space-x-2 text-sm">
-          <Link href="/search" className="hover:underline">search</Link>
-          <span>|</span>
+          {user && (
+            <>
+              <Link href="/submit" className="hover:underline">submit</Link>
+              <span>|</span>
+            </>
+          )}
           {user ? (
             <>
               <span className="font-bold">{user.email?.split('@')[0]}</span>

@@ -3,12 +3,13 @@ import Link from 'next/link';
 
 export interface NewsItemProps {
     id: number;
-    title: string;
+    title?: string | null;
     url?: string | null;
     summary?: string | null;
-    points: number;
+    points?: number;
     author: string;
     created_at: string;
+    published_at?: string | null;
     comments_count?: number;
     isDetail?: boolean;
 }
@@ -17,22 +18,25 @@ export default function NewsItem({
     id,
     title,
     url,
-    points,
+    summary,
+    points = 0,
     author,
     created_at,
+    published_at,
     comments_count = 0,
     isDetail = false
 }: NewsItemProps) {
-    const domain = url ? new URL(url).hostname : null;
-    const time_ago = new Date(created_at).toLocaleDateString();
+    const displayTitle = title || summary?.split('\n')[0]?.slice(0, 100) || '(제목 없음)';
+    const domain = url ? (() => { try { return new URL(url).hostname; } catch { return null; } })() : null;
+    const displayDate = published_at || created_at;
+    const time_ago = new Date(displayDate).toLocaleDateString();
 
     return (
-        <div className="py-2 px-4 flex items-start space-x-2">
-            <span className="text-gray-400 text-sm w-6 text-right font-mono">1.</span>
+        <div className="py-2 px-4">
             <div>
                 <div className="flex items-baseline space-x-1">
-                    <Link href={isDetail ? `/item/${id}` : `/item/${id}`} className="text-md sm:text-lg font-medium leading-tight visited:text-gray-500 hover:text-blue-600">
-                        {title}
+                    <Link href={`/item/${id}`} className="text-md sm:text-lg font-medium leading-tight visited:text-gray-500 hover:text-blue-600">
+                        {displayTitle}
                     </Link>
                     {domain && (
                         <Link href={url!} target="_blank" className="text-xs text-gray-500 hover:underline">
