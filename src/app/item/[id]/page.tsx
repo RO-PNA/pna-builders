@@ -1,20 +1,17 @@
-
 import React from 'react';
-import NewsItem from '@/components/NewsItem';
 import { createSupabaseServer } from '@/utils/supabase/server';
-import { Item } from '@/types';
+import Link from 'next/link';
+import type { Metadata } from 'next';
 
 export const revalidate = 0;
 
-export default async function ItemPage({
-    params,
-}: {
-    params: Promise<{ id: string }>
-}) {
+type Props = {
+    params: Promise<{ id: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { id } = await params;
     const supabase = await createSupabaseServer();
-
-    // Fetch item
     const { data: item } = await supabase
         .from('items')
         .select('*')
@@ -22,44 +19,77 @@ export default async function ItemPage({
         .single();
 
     if (!item) {
-        return <div className="p-4">Item not found</div>;
+        return { title: 'Not Found | PNA' };
     }
 
-    // Fetch comments (children)
-    const { data: comments } = await supabase
+    const title = item.summary?.split('\n')[0]?.slice(0, 60) || 'PNA Knowledge';
+    const description = item.summary?.slice(0, 160) || '';
+    const url = `https://pna-builders.vercel.app/item/${id}`;
+
+    return {
+        title: `${title} | PNA`,
+        description,
+        openGraph: {
+            title,
+            description,
+            url,
+            siteName: 'PNA - Penguins Never Alone',
+            type: 'article',
+            publishedTime: item.published_at || item.created_at,
+            authors: [item.author],
+        },
+        twitter: {
+            card: 'summary',
+            title,
+            description,
+        },
+        alternates: {
+            canonical: url,
+        },
+    };
+}
+
+export default async function ItemPage({ params }: Props) {
+    const { id } = await params;
+    const supabase = await createSupabaseServer();
+
+    const { data: item } = await supabase
         .from('items')
         .select('*')
-        .eq('parent_id', id)
-        .order('created_at', { ascending: true });
+        .eq('id', id)
+        .single();
+
+    if (!item) {
+        return <div>Item not found</div>;
+    }
+
+    const displayTitle = item.summary?.split('\n')[0]?.slice(0, 100) || '(제목 없음)';
+    const domain = item.url ? (() => { try { return new URL(item.url).hostname; } catch { return null; } })() : null;
+    const displayDate = new Date(item.published_at || item.created_at).toLocaleDateString();
 
     return (
-        <div className="bg-white p-4">
-            <NewsItem {...(item as Item)} isDetail={true} />
+        <article>
+            <h1 className="text-lg font-semibold">
+                {item.url ? (
+                    <Link href={item.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">
+                        {displayTitle}
+                    </Link>
+                ) : (
+                    displayTitle
+                )}
+                {domain && (
+                    <span className="text-xs text-gray-500 font-normal ml-2">({domain})</span>
+                )}
+            </h1>
+            <div className="text-xs text-gray-500 mt-1 mb-4">
+                {item.author} &middot; {displayDate}
+            </div>
 
             {item.summary && (
-                <div className="mt-4 text-sm text-gray-800 leading-relaxed mb-8 border-b pb-4">
+                <div className="text-sm text-gray-400 leading-relaxed whitespace-pre-line border-t pt-4">
                     {item.summary}
                 </div>
             )}
-
-            <div className="mt-4">
-                <h3 className="font-bold text-sm mb-4">Comments</h3>
-                <div className="space-y-4">
-                    {comments?.map((comment: Item) => (
-                        <div key={comment.id} className="text-sm">
-                            <div className="text-gray-500 text-xs mb-1">
-                                <span className="font-bold text-gray-700">{comment.author}</span> {new Date(comment.created_at).toLocaleDateString()}
-                            </div>
-                            <div className="mb-2">{comment.summary}</div>
-
-                            {/* Nested comments not implemented fully in this fetch depth yet, just 1 level for now */}
-                        </div>
-                    ))}
-                    {(!comments || comments.length === 0) && (
-                        <div className="text-gray-500 text-sm">No comments yet.</div>
-                    )}
-                </div>
-            </div>
-        </div>
+        </article>
     );
 }

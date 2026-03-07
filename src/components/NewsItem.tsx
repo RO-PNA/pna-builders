@@ -32,7 +32,7 @@ export default function NewsItem({
     const time_ago = new Date(displayDate).toLocaleDateString();
 
     return (
-        <div className="py-2 px-4">
+        <div className="py-2">
             <div>
                 <div className="flex items-baseline space-x-1">
                     <Link href={`/item/${id}`} className="text-md sm:text-lg font-medium leading-tight visited:text-gray-500 hover:text-blue-600">

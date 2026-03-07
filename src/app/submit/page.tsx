@@ -34,7 +34,7 @@ export default function SubmitPage() {
     }
 
     return (
-        <main className="p-4 bg-white max-w-lg">
+        <main>
             <h1 className="text-2xl font-bold mb-6">글 등록</h1>
 
             <div className="space-y-4">

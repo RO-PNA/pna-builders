@@ -12,14 +12,18 @@ export default async function Navbar() {
     <header className="bg-orange-500 text-black p-2 mb-4">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Link href="/" className="font-bold text-lg border-2 border-white px-1">
-            Y
+          <Link href="/" className="text-2xl" title="PNA">
+            🐧
           </Link>
-          <span className="font-bold">News App</span>
+          <span className="font-bold">PNA</span>
           <nav className="hidden md:flex space-x-2 text-sm">
             <Link href="/" className="hover:underline">knowledge</Link>
             <span>|</span>
-            <Link href="/chatbot" className="hover:underline">chatbot</Link>
+            <Link href="/chatbot" className="hover:underline">26년-1분기 워크샵</Link>
+            <span>|</span>
+            <Link href="/open-chat" className="hover:underline">open chat</Link>
+            <span>|</span>
+            <Link href="/about" className="hover:underline">about</Link>
           </nav>
         </div>
         <div className="flex items-center space-x-2 text-sm">

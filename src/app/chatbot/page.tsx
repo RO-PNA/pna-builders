@@ -139,7 +139,7 @@ ${memberList}
 
   if (phase === "setup") {
     return (
-      <div className="max-w-2xl mx-auto py-8 px-4">
+      <div>
         <h1 className="text-2xl font-bold mb-2">🎮 PNA 워크샵 챗봇</h1>
         <p className="text-gray-600 mb-8">
           팀 정보를 입력하고 도메인을 선택하면 게임마스터(GM)가 워크샵을
