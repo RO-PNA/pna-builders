@@ -33,28 +33,28 @@ const FRAMEWORK_EMOJI: Record<string, string> = {
 
 const DOMAINS = [
   {
-    key: "A",
-    emoji: "🛒",
-    name: '패션 커머스 "스타일핏"',
-    desc: "AI 추천은 만능인가?",
+    key: "fintech",
+    emoji: "💳",
+    name: '핀테크 "코코넛페이"',
+    desc: "매출 상승률이 계속 떨어진다",
   },
   {
-    key: "B",
-    emoji: "💼",
-    name: 'B2B SaaS "태스크플로우"',
-    desc: "온보딩에서 사라지는 고객사",
+    key: "content",
+    emoji: "🎬",
+    name: '콘텐츠 플랫폼 "웹툰박스"',
+    desc: "작가 이탈이 증가하고 있다",
   },
   {
-    key: "C",
-    emoji: "📱",
-    name: '뉴스레터 "모닝브리프"',
-    desc: "구독자는 많은데 수익이 안 나는 미디어",
+    key: "saas",
+    emoji: "📦",
+    name: '물류 플랫폼 "로지플로우"',
+    desc: "무료체험 후 실사용률이 낮다",
   },
   {
-    key: "D",
-    emoji: "🏥",
-    name: '헬스케어 앱 "케어루틴"',
-    desc: "습관이 안 만들어지는 건강관리 앱",
+    key: "commerce",
+    emoji: "🏕️",
+    name: '커머스 플랫폼 "캠핑픽"',
+    desc: "재구매가 일어나지 않는다",
   },
 ];
 
@@ -462,11 +462,10 @@ export default function ChatbotPage() {
               <button
                 key={d.key}
                 onClick={() => setDomain(d.key)}
-                className={`text-left p-4 rounded-lg border-2 transition-all ${
-                  domain === d.key
-                    ? "border-orange-500 shadow-sm"
-                    : "border-gray-200 hover:border-orange-300"
-                }`}
+                className={`text-left p-4 rounded-lg border-2 transition-all ${domain === d.key
+                  ? "border-orange-500 shadow-sm"
+                  : "border-gray-200 hover:border-orange-300"
+                  }`}
               >
                 <div className="font-semibold">
                   {d.emoji} {d.name}
@@ -519,9 +518,8 @@ export default function ChatbotPage() {
                 }}
                 placeholder="비밀번호 입력"
                 autoFocus
-                className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 ${
-                  systemError ? "border-red-400" : "border-gray-300"
-                }`}
+                className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 ${systemError ? "border-red-400" : "border-gray-300"
+                  }`}
               />
               {systemError && (
                 <p className="text-xs text-red-500 mt-1">비밀번호가 틀렸습니다.</p>
@@ -561,13 +559,12 @@ export default function ChatbotPage() {
           <div className="flex items-center gap-3 shrink-0">
             {/* Timer */}
             <div
-              className={`text-sm font-mono px-2 py-0.5 rounded ${
-                timer.isExpired
-                  ? "text-red-500 font-bold"
-                  : timer.isWarning
-                    ? "text-yellow-600 animate-pulse font-bold"
-                    : "text-gray-500"
-              }`}
+              className={`text-sm font-mono px-2 py-0.5 rounded ${timer.isExpired
+                ? "text-red-500 font-bold"
+                : timer.isWarning
+                  ? "text-yellow-600 animate-pulse font-bold"
+                  : "text-gray-500"
+                }`}
             >
               ⏱ {timer.display}
             </div>
@@ -592,13 +589,12 @@ export default function ChatbotPage() {
           {MISSIONS.map((m) => (
             <div
               key={m.id}
-              className={`flex-1 text-center text-[10px] sm:text-xs py-1 rounded transition-colors ${
-                m.id === currentMission
-                  ? "bg-orange-500 text-white font-semibold"
-                  : m.id < currentMission
-                    ? "bg-orange-200 text-orange-800"
-                    : "text-gray-400"
-              }`}
+              className={`flex-1 text-center text-[10px] sm:text-xs py-1 rounded transition-colors ${m.id === currentMission
+                ? "bg-orange-500 text-white font-semibold"
+                : m.id < currentMission
+                  ? "bg-orange-200 text-orange-800"
+                  : "text-gray-400"
+                }`}
               title={`M${m.id}: ${m.name} (${m.time}분)`}
             >
               <span className="hidden sm:inline">M{m.id} {m.name}</span>
@@ -616,11 +612,10 @@ export default function ChatbotPage() {
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[90%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${
-                msg.role === "user"
-                  ? "bg-orange-500 text-white"
-                  : "border border-gray-300 text-inherit"
-              }`}
+              className={`max-w-[90%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === "user"
+                ? "bg-orange-500 text-white"
+                : "border border-gray-300 text-inherit"
+                }`}
             >
               {msg.role === "user" ? (
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">
