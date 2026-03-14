@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { buildSystemPrompt } from "@/lib/chatbot/systemPrompt";
 
-const client = new Anthropic();
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,24 +17,31 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = buildSystemPrompt(domain, teamMembers);
 
-    const stream = client.messages.stream({
-      model: "claude-sonnet-4-5-20250514",
-      max_tokens: 4000,
-      system: systemPrompt,
-      messages,
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      systemInstruction: systemPrompt,
     });
+
+    // Convert messages from Anthropic format to Gemini format
+    const geminiHistory = messages.slice(0, -1).map((msg: { role: string; content: string }) => ({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }],
+    }));
+
+    const lastMessage = messages[messages.length - 1].content;
+
+    const chat = model.startChat({ history: geminiHistory });
+    const result = await chat.sendMessageStream(lastMessage);
 
     const encoder = new TextEncoder();
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
+          for await (const chunk of result.stream) {
+            const text = chunk.text();
+            if (text) {
               controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`)
+                encoder.encode(`data: ${JSON.stringify({ text })}\n\n`)
               );
             }
           }
@@ -58,6 +65,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (err) {
+    console.error("Chatbot API error:", err);
     const message = err instanceof Error ? err.message : "Internal server error";
     return Response.json({ error: message }, { status: 500 });
   }
