@@ -14,7 +14,7 @@ type GameState = {
   members: TeamMember[];
   domain: string | null;
   messages: Message[];
-  currentMission: number;
+  currentPhase: number;
 };
 
 const FRAMEWORK_TYPES = [
@@ -32,40 +32,89 @@ const FRAMEWORK_EMOJI: Record<string, string> = {
 };
 
 const DOMAINS = [
-  {
-    key: "fintech",
-    emoji: "💳",
-    name: '핀테크 "코코넛페이"',
-    desc: "매출 상승률이 계속 떨어진다",
-  },
-  {
-    key: "content",
-    emoji: "🎬",
-    name: '콘텐츠 플랫폼 "웹툰박스"',
-    desc: "작가 이탈이 증가하고 있다",
-  },
-  {
-    key: "saas",
-    emoji: "📦",
-    name: '물류 플랫폼 "로지플로우"',
-    desc: "무료체험 후 실사용률이 낮다",
-  },
-  {
-    key: "commerce",
-    emoji: "🏕️",
-    name: '커머스 플랫폼 "캠핑픽"',
-    desc: "재구매가 일어나지 않는다",
-  },
+  { key: "A", emoji: "💳", name: "페이플로(PayFlo)", desc: "핀테크 간편결제 — CC 천장 도달" },
+  { key: "B", emoji: "🥬", name: "프레시마켓(FreshMarket)", desc: "이커머스 멤버십 — 세그먼트별 Churn 격차" },
+  { key: "C", emoji: "🎬", name: "클립비(ClipB)", desc: "숏폼 플랫폼 — 양면 시장 교차 효과" },
+  { key: "D", emoji: "📊", name: "애드포커스(AdFocus)", desc: "광고 SaaS — B2B TAM 확장" },
 ];
 
-const MISSIONS = [
-  { id: 1, name: "현황 파악", time: 15 },
-  { id: 2, name: "핵심 문제 정의", time: 15 },
-  { id: 3, name: "AI 적용 가설 수립", time: 20 },
-  { id: 4, name: "인과관계 설계", time: 20 },
-  { id: 5, name: "최소 실험 설계", time: 20 },
-  { id: 6, name: "전략 통합", time: 15 },
+const PHASES = [
+  { id: 1, name: "문제 감지", time: 15 },
+  { id: 2, name: "문제 분해", time: 15 },
+  { id: 3, name: "원인 추적", time: 20 },
+  { id: 4, name: "가설 검증", time: 25 },
+  { id: 5, name: "종합", time: 15 },
+  { id: 6, name: "피칭", time: 20 },
 ];
+
+type VipInfo = { emoji: string; name: string; role: string; concern: string };
+type DomainDetail = {
+  vips: VipInfo[];
+  metrics: { label: string; value: string }[];
+};
+
+const DOMAIN_INFO: Record<string, DomainDetail> = {
+  A: {
+    vips: [
+      { emoji: "👔", name: "박진호", role: "대표", concern: "MAU 성장, 투자 스토리" },
+      { emoji: "👩‍💼", name: "이수연", role: "가맹점 대표", concern: "가맹점 매출, 수수료" },
+      { emoji: "📱", name: "김도윤", role: "파워유저", concern: "리워드, UX, 속도" },
+    ],
+    metrics: [
+      { label: "MAU", value: "42만 (횡보)" },
+      { label: "DAU", value: "8.2만" },
+      { label: "일 신규 유입", value: "1,400명" },
+      { label: "월 이탈률", value: "~10%" },
+      { label: "가맹점", value: "12,000개" },
+      { label: "리텐션 M1/M3/M6", value: "48% / 29% / 22%" },
+    ],
+  },
+  B: {
+    vips: [
+      { emoji: "👔", name: "한지원", role: "CFO", concern: "멤버십 매출, LTV, 유료 전환율" },
+      { emoji: "🛒", name: "최예린", role: "비멤버 유저", concern: "무료 체험, 큐레이션 정확도" },
+      { emoji: "🌾", name: "박소미", role: "농가 대표", concern: "공정 노출, 수수료" },
+    ],
+    metrics: [
+      { label: "MAU", value: "18만" },
+      { label: "유료 멤버", value: "1.44만 (8%)" },
+      { label: "멤버 M3 리텐션", value: "68%" },
+      { label: "비멤버 M3 리텐션", value: "12%" },
+      { label: "일 신규 유입", value: "950명" },
+      { label: "비멤버 이탈률", value: "2.8%/일" },
+    ],
+  },
+  C: {
+    vips: [
+      { emoji: "👔", name: "정민규", role: "대표", concern: "DAU, 시청 시간, 글로벌" },
+      { emoji: "🎬", name: "한새별", role: "탑 크리에이터", concern: "수익 분배, 알고리즘" },
+      { emoji: "📱", name: "이하은", role: "Z세대 시청자", concern: "추천 다양성, 커뮤니티" },
+    ],
+    metrics: [
+      { label: "시청자 MAU", value: "85만" },
+      { label: "크리에이터 MAU", value: "1.2만" },
+      { label: "시청 시간", value: "38분/일 (-15%)" },
+      { label: "업로드", value: "4,200건/일 (-22%)" },
+      { label: "시청자 이탈률", value: "1.4%/일" },
+      { label: "수익 분배율", value: "40%" },
+    ],
+  },
+  D: {
+    vips: [
+      { emoji: "👔", name: "윤석진", role: "대표", concern: "ARR, 엔터프라이즈 레퍼런스" },
+      { emoji: "🏪", name: "강다은", role: "고객사 마케터", concern: "ROAS, 대시보드, CS" },
+      { emoji: "📊", name: "김준", role: "Meta 파트너", concern: "API 정책, 데이터 정합성" },
+    ],
+    metrics: [
+      { label: "활성 고객사", value: "340개사" },
+      { label: "월 신규 도입", value: "25개사" },
+      { label: "월 이탈", value: "3개사 (0.88%)" },
+      { label: "ARPU", value: "월 89만원" },
+      { label: "TAM", value: "국내 ~2,000개사" },
+      { label: "핵심 타겟", value: "~800개사" },
+    ],
+  },
+};
 
 const STORAGE_KEY = "pna-chatbot-state";
 
@@ -95,17 +144,17 @@ function clearState() {
   }
 }
 
-function detectMission(messages: Message[]): number {
-  let mission = 1;
+function detectPhase(messages: Message[]): number {
+  let phase = 1;
   for (const msg of messages) {
     if (msg.role !== "assistant") continue;
-    const match = msg.content.match(/Mission\s*(\d)/i);
+    const match = msg.content.match(/Phase\s*(\d)/i);
     if (match) {
       const n = parseInt(match[1]);
-      if (n > mission && n <= 6) mission = n;
+      if (n > phase && n <= 6) phase = n;
     }
   }
-  return mission;
+  return phase;
 }
 
 // Timer hook
@@ -144,7 +193,7 @@ export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [currentMission, setCurrentMission] = useState(1);
+  const [currentPhase, setCurrentPhase] = useState(1);
   const [streamingContent, setStreamingContent] = useState("");
   const [showSystemModal, setShowSystemModal] = useState(false);
   const [systemPassword, setSystemPassword] = useState("");
@@ -152,10 +201,10 @@ export default function ChatbotPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [initialized, setInitialized] = useState(false);
 
-  const missionTime = MISSIONS.find((m) => m.id === currentMission)?.time ?? 15;
-  const timer = useTimer(missionTime, phase === "chat");
+  const phaseTime = PHASES.find((p) => p.id === currentPhase)?.time ?? 15;
+  const timer = useTimer(phaseTime, phase === "chat");
 
-  // Restore state from sessionStorage
+  // Restore state
   useEffect(() => {
     const saved = loadState();
     if (saved) {
@@ -164,7 +213,7 @@ export default function ChatbotPage() {
       setMembers(saved.members);
       setDomain(saved.domain);
       setMessages(saved.messages);
-      setCurrentMission(saved.currentMission);
+      setCurrentPhase(saved.currentPhase);
     }
     setInitialized(true);
   }, []);
@@ -172,16 +221,16 @@ export default function ChatbotPage() {
   // Persist state
   useEffect(() => {
     if (!initialized) return;
-    saveState({ phase, teamName, members, domain, messages, currentMission });
-  }, [phase, teamName, members, domain, messages, currentMission, initialized]);
+    saveState({ phase, teamName, members, domain, messages, currentPhase });
+  }, [phase, teamName, members, domain, messages, currentPhase, initialized]);
 
-  // Track mission changes
+  // Track phase changes
   useEffect(() => {
     if (messages.length > 0) {
-      const detected = detectMission(messages);
-      if (detected !== currentMission) {
-        setCurrentMission(detected);
-        timer.reset(MISSIONS.find((m) => m.id === detected)?.time ?? 15);
+      const detected = detectPhase(messages);
+      if (detected !== currentPhase) {
+        setCurrentPhase(detected);
+        timer.reset(PHASES.find((p) => p.id === detected)?.time ?? 15);
       }
     }
   }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -298,8 +347,8 @@ export default function ChatbotPage() {
     const initMessage = `팀 등록합니다.\n\n팀 이름: ${teamName}\n팀원:\n${memberList}\n\n선택한 도메인: ${domainInfo?.emoji} ${domainInfo?.name}\n\n게임을 시작해주세요!`;
 
     setPhase("chat");
-    setCurrentMission(1);
-    timer.reset(MISSIONS[0].time);
+    setCurrentPhase(1);
+    timer.reset(PHASES[0].time);
     await sendMessage(initMessage);
   }
 
@@ -310,7 +359,7 @@ export default function ChatbotPage() {
     setDomain(null);
     setTeamName("");
     setMembers([{ name: "", type: "discovery" }]);
-    setCurrentMission(1);
+    setCurrentPhase(1);
     setStreamingContent("");
     clearState();
   }
@@ -348,15 +397,15 @@ export default function ChatbotPage() {
     const initMessage = `팀 등록합니다.\n\n팀 이름: ${DEFAULT_TEAM_NAME}\n팀원:\n${memberList}\n\n선택한 도메인: ${domainInfo?.emoji} ${domainInfo?.name}\n\n게임을 시작해주세요!`;
 
     setPhase("chat");
-    setCurrentMission(1);
-    timer.reset(MISSIONS[0].time);
+    setCurrentPhase(1);
+    timer.reset(PHASES[0].time);
     sendMessage(initMessage, { domain: DEFAULT_DOMAIN, members: DEFAULT_MEMBERS });
   }
 
   function exportResults() {
     const domainInfo = DOMAINS.find((d) => d.key === domain);
     const lines = [
-      `# PNA 워크샵 결과 - ${teamName}`,
+      `# Product Autopsy 결과 - ${teamName}`,
       `도메인: ${domainInfo?.emoji} ${domainInfo?.name}`,
       `날짜: ${new Date().toLocaleDateString("ko-KR")}`,
       "",
@@ -375,7 +424,7 @@ export default function ChatbotPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pna-workshop-${teamName}-${Date.now()}.md`;
+    a.download = `product-autopsy-${teamName}-${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -387,10 +436,10 @@ export default function ChatbotPage() {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold mb-2">🎮 PNA 워크샵 챗봇</h1>
+          <h1 className="text-2xl font-bold mb-2">🏥 Product Autopsy</h1>
           <p className="text-gray-600">
-            팀 정보를 입력하고 도메인을 선택하면 게임마스터(GM)가 워크샵을
-            진행합니다.
+            성장이 멈춘 제품을 부검하여 근본 원인을 밝혀내는 팀 기반 시뮬레이션 게임입니다.
+            팀 정보를 입력하고 도메인을 선택하세요.
           </p>
         </div>
 
@@ -547,14 +596,24 @@ export default function ChatbotPage() {
 
   // ─── CHAT PHASE ───
   const domainInfo = DOMAINS.find((d) => d.key === domain);
+  const domainDetail = domain ? DOMAIN_INFO[domain] : null;
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-64px)]">
+    <div
+      className="flex flex-col h-[calc(100dvh-64px)] relative"
+      style={{
+        width: "100vw",
+        left: "50%",
+        marginLeft: "-50vw",
+        paddingLeft: 40,
+        paddingRight: 40,
+      }}
+    >
       {/* Header */}
       <div className="border-b border-orange-200 px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="font-semibold text-sm truncate">
-            🎮 {teamName} | {domainInfo?.emoji} {domainInfo?.name}
+            🏥 {teamName} | {domainInfo?.emoji} {domainInfo?.name}
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {/* Timer */}
@@ -584,118 +643,163 @@ export default function ChatbotPage() {
           </div>
         </div>
 
-        {/* Mission Progress */}
+        {/* Phase Progress */}
         <div className="flex gap-1 mt-2">
-          {MISSIONS.map((m) => (
+          {PHASES.map((p) => (
             <div
-              key={m.id}
-              className={`flex-1 text-center text-[10px] sm:text-xs py-1 rounded transition-colors ${m.id === currentMission
+              key={p.id}
+              className={`flex-1 text-center text-[10px] sm:text-xs py-1 rounded transition-colors ${p.id === currentPhase
                 ? "bg-orange-500 text-white font-semibold"
-                : m.id < currentMission
+                : p.id < currentPhase
                   ? "bg-orange-200 text-orange-800"
                   : "text-gray-400"
                 }`}
-              title={`M${m.id}: ${m.name} (${m.time}분)`}
+              title={`P${p.id}: ${p.name} (${p.time}분)`}
             >
-              <span className="hidden sm:inline">M{m.id} {m.name}</span>
-              <span className="sm:hidden">M{m.id}</span>
+              <span className="hidden sm:inline">P{p.id} {p.name}</span>
+              <span className="sm:hidden">P{p.id}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 space-y-4">
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`max-w-[90%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === "user"
-                ? "bg-orange-500 text-white"
-                : "border border-gray-300 text-inherit"
-                }`}
-            >
-              {msg.role === "user" ? (
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                  {msg.content}
+      {/* Main content: sidebar + chat */}
+      <div className="flex flex-1 min-h-0">
+        {/* Left Sidebar (1/3) */}
+        <div className="w-1/3 border-r border-gray-200 flex flex-col overflow-y-auto">
+          {/* VIP Section */}
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">VIP 이해관계자</h3>
+            <div className="space-y-3">
+              {domainDetail?.vips.map((vip, i) => (
+                <div key={i} className="rounded-lg border border-gray-200 p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">{vip.emoji}</span>
+                    <div>
+                      <div className="font-semibold text-sm">{vip.name}</div>
+                      <div className="text-xs text-gray-500">{vip.role}</div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1">{vip.concern}</div>
                 </div>
-              ) : (
-                <div className="prose prose-sm max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 [&_table]:text-xs">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {msg.content}
-                  </ReactMarkdown>
+              ))}
+            </div>
+          </div>
+
+          {/* Situation Data Section */}
+          <div className="p-4 flex-1">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">상황 데이터</h3>
+            {domainDetail && (
+              <div className="space-y-2">
+                {domainDetail.metrics.map((m, i) => (
+                  <div key={i} className="flex justify-between items-baseline text-sm">
+                    <span className="text-gray-500 text-xs">{m.label}</span>
+                    <span className="font-medium text-xs">{m.value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Chat Area (2/3) */}
+        <div className="w-2/3 flex flex-col min-h-0">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[90%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === "user"
+                    ? "bg-orange-500 text-white"
+                    : "border border-gray-300 text-inherit"
+                    }`}
+                >
+                  {msg.role === "user" ? (
+                    <div className="whitespace-pre-wrap leading-relaxed" style={{ fontSize: 16 }}>
+                      {msg.content}
+                    </div>
+                  ) : (
+                    <div className="prose max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 [&_table]:text-xs" style={{ fontSize: 16 }}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-        ))}
-
-        {/* Streaming message */}
-        {streamingContent && (
-          <div className="flex justify-start">
-            <div className="max-w-[90%] sm:max-w-[80%] rounded-2xl px-4 py-3 border border-gray-300 text-inherit">
-              <div className="prose prose-sm max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 [&_table]:text-xs">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {streamingContent}
-                </ReactMarkdown>
               </div>
-            </div>
-          </div>
-        )}
+            ))}
 
-        {/* Loading indicator (before streaming starts) */}
-        {isLoading && !streamingContent && (
-          <div className="flex justify-start">
-            <div className="border border-gray-300 rounded-2xl px-4 py-3">
-              <div className="flex space-x-1.5">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.15s" }}
-                />
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.3s" }}
-                />
+            {/* Streaming message */}
+            {streamingContent && (
+              <div className="flex justify-start">
+                <div className="max-w-[90%] sm:max-w-[80%] rounded-2xl px-4 py-3 border border-gray-300 text-inherit">
+                  <div className="prose max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 [&_table]:text-xs" style={{ fontSize: 16 }}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {streamingContent}
+                    </ReactMarkdown>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+            )}
 
-      {/* Input */}
-      <div className="border-t border-gray-200 px-3 sm:px-4 py-3">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (input.trim() && !isLoading) sendMessage(input.trim());
-          }}
-          className="flex gap-2"
-        >
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+            {/* Loading indicator */}
+            {isLoading && !streamingContent && (
+              <div className="flex justify-start">
+                <div className="border border-gray-300 rounded-2xl px-4 py-3">
+                  <div className="flex space-x-1.5">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                    <div
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.15s" }}
+                    />
+                    <div
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.3s" }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <div className="border-t border-gray-200 px-4 py-3">
+            <form
+              onSubmit={(e) => {
                 e.preventDefault();
                 if (input.trim() && !isLoading) sendMessage(input.trim());
-              }
-            }}
-            placeholder="팀 액션을 입력하세요..."
-            rows={2}
-            className="flex-1 border border-gray-300 rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isLoading}
-            className="self-end bg-orange-500 text-white px-4 py-2.5 rounded-xl hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-semibold text-sm"
-          >
-            전송
-          </button>
-        </form>
+              }}
+              className="flex gap-2"
+            >
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    if (input.trim() && !isLoading) sendMessage(input.trim());
+                  }
+                }}
+                placeholder="팀 액션을 입력하세요..."
+                rows={2}
+                className="flex-1 border border-gray-300 rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
+                style={{ fontSize: 16 }}
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className="self-end bg-orange-500 text-white px-4 py-2.5 rounded-xl hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-semibold"
+                style={{ fontSize: 16 }}
+              >
+                전송
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );

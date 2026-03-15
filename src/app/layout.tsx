@@ -10,13 +10,25 @@ export const metadata: Metadata = {
   description: "A simple news aggregator",
 };
 
+const themeScript = `
+(function(){
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme:dark)').matches)) {
+    document.documentElement.classList.add('dark');
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className={`${inter.className} min-h-screen`}>
         <Navbar />
         <main className="container mx-auto px-4 py-4 max-w-4xl min-h-[calc(100vh-80px)]">

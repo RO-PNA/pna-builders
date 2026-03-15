@@ -1,5 +1,6 @@
 import LoginButton from './LoginButton';
 import LogoutButton from './LogoutButton';
+import ThemeToggle from './ThemeToggle';
 import Link from 'next/link';
 import React from 'react';
 import { createSupabaseServer } from '@/utils/supabase/server';
@@ -33,6 +34,8 @@ export default async function Navbar() {
               <span>|</span>
             </>
           )}
+          <ThemeToggle />
+          <span>|</span>
           {user ? (
             <>
               <span className="font-bold">{user.email?.split('@')[0]}</span>

@@ -86,7 +86,7 @@ export default async function ItemPage({ params }: Props) {
             </div>
 
             {item.summary && (
-                <div className="text-sm text-gray-400 leading-relaxed whitespace-pre-line border-t pt-4">
+                <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line border-t pt-4">
                     {item.summary}
                 </div>
             )}
