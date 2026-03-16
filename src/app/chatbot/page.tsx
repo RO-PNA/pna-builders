@@ -15,6 +15,9 @@ type GameState = {
   domain: string | null;
   messages: Message[];
   currentPhase: number;
+
+  sessionId: string | null;
+  currentStageKey: string;
 };
 
 const FRAMEWORK_TYPES = [
@@ -195,6 +198,8 @@ export default function ChatbotPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPhase, setCurrentPhase] = useState(1);
   const [streamingContent, setStreamingContent] = useState("");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [currentStageKey, setCurrentStageKey] = useState("P1");
   const [showSystemModal, setShowSystemModal] = useState(false);
   const [systemPassword, setSystemPassword] = useState("");
   const [systemError, setSystemError] = useState(false);
@@ -214,6 +219,8 @@ export default function ChatbotPage() {
       setDomain(saved.domain);
       setMessages(saved.messages);
       setCurrentPhase(saved.currentPhase);
+      setSessionId(saved.sessionId);
+      setCurrentStageKey(saved.currentStageKey);
     }
     setInitialized(true);
   }, []);
@@ -221,8 +228,11 @@ export default function ChatbotPage() {
   // Persist state
   useEffect(() => {
     if (!initialized) return;
-    saveState({ phase, teamName, members, domain, messages, currentPhase });
-  }, [phase, teamName, members, domain, messages, currentPhase, initialized]);
+    saveState({
+      phase, teamName, members, domain, messages, currentPhase, sessionId,
+      currentStageKey,
+    });
+  }, [phase, teamName, members, domain, messages, currentPhase, sessionId, currentStageKey, initialized]);
 
   // Track phase changes
   useEffect(() => {
@@ -230,6 +240,7 @@ export default function ChatbotPage() {
       const detected = detectPhase(messages);
       if (detected !== currentPhase) {
         setCurrentPhase(detected);
+        setCurrentStageKey(`P${detected}`);
         timer.reset(PHASES.find((p) => p.id === detected)?.time ?? 15);
       }
     }
@@ -276,6 +287,8 @@ export default function ChatbotPage() {
           messages: newMessages,
           domain: activeDomain,
           teamMembers: activeMembers.filter((m) => m.name.trim()),
+          sessionId,
+          currentStage: currentStageKey,
         }),
       });
 
@@ -305,8 +318,15 @@ export default function ChatbotPage() {
           try {
             const parsed = JSON.parse(data);
             if (parsed.error) throw new Error(parsed.error);
-            accumulated += parsed.text;
-            setStreamingContent(accumulated);
+
+            if (parsed.stage) {
+              setCurrentStageKey(parsed.stage);
+            }
+
+            if (parsed.text) {
+              accumulated += parsed.text;
+              setStreamingContent(accumulated);
+            }
           } catch (e) {
             if (e instanceof Error && e.message !== "Unexpected end of JSON input") {
               // skip parse errors from partial chunks
@@ -339,17 +359,43 @@ export default function ChatbotPage() {
     const memberList = validMembers
       .map(
         (m) =>
-          `${m.name} / ${FRAMEWORK_EMOJI[m.type]} ${FRAMEWORK_TYPES.find((t) => t.value === m.type)?.label}`
+          `${m.name} / ${FRAMEWORK_EMOJI[m.type]} ${FRAMEWORK_TYPES.find((t) => t.value === m.type)?.label
+          }`
       )
       .join("\n");
 
     const domainInfo = DOMAINS.find((d) => d.key === domain);
     const initMessage = `팀 등록합니다.\n\n팀 이름: ${teamName}\n팀원:\n${memberList}\n\n선택한 도메인: ${domainInfo?.emoji} ${domainInfo?.name}\n\n게임을 시작해주세요!`;
 
-    setPhase("chat");
-    setCurrentPhase(1);
-    timer.reset(PHASES[0].time);
-    await sendMessage(initMessage);
+    try {
+      const sessionRes = await fetch("/api/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamName: teamName.trim(),
+          domain,
+        }),
+      });
+
+      if (!sessionRes.ok) {
+        const data = await sessionRes.json();
+        throw new Error(data.error || "세션 생성 실패");
+      }
+
+      const sessionData = await sessionRes.json();
+
+      setSessionId(sessionData.sessionId);
+      setCurrentStageKey(sessionData.currentStage || "P1");
+
+      setPhase("chat");
+      setCurrentPhase(1);
+      timer.reset(PHASES[0].time);
+
+      await sendMessage(initMessage);
+    } catch (err) {
+      console.error(err);
+      alert("게임 세션을 시작하지 못했습니다. 다시 시도해주세요.");
+    }
   }
 
   function resetGame() {
@@ -361,6 +407,8 @@ export default function ChatbotPage() {
     setMembers([{ name: "", type: "discovery" }]);
     setCurrentPhase(1);
     setStreamingContent("");
+    setSessionId(null);
+    setCurrentStageKey("P1");
     clearState();
   }
 
@@ -373,7 +421,7 @@ export default function ChatbotPage() {
   ];
   const DEFAULT_DOMAIN = "A";
 
-  function handleSystemStart() {
+  async function handleSystemStart() {
     if (systemPassword !== "0321") {
       setSystemError(true);
       return;
@@ -389,17 +437,46 @@ export default function ChatbotPage() {
     const memberList = DEFAULT_MEMBERS
       .map(
         (m) =>
-          `${m.name} / ${FRAMEWORK_EMOJI[m.type]} ${FRAMEWORK_TYPES.find((t) => t.value === m.type)?.label}`
+          `${m.name} / ${FRAMEWORK_EMOJI[m.type]} ${FRAMEWORK_TYPES.find((t) => t.value === m.type)?.label
+          }`
       )
       .join("\n");
 
     const domainInfo = DOMAINS.find((d) => d.key === DEFAULT_DOMAIN);
     const initMessage = `팀 등록합니다.\n\n팀 이름: ${DEFAULT_TEAM_NAME}\n팀원:\n${memberList}\n\n선택한 도메인: ${domainInfo?.emoji} ${domainInfo?.name}\n\n게임을 시작해주세요!`;
 
-    setPhase("chat");
-    setCurrentPhase(1);
-    timer.reset(PHASES[0].time);
-    sendMessage(initMessage, { domain: DEFAULT_DOMAIN, members: DEFAULT_MEMBERS });
+    try {
+      const sessionRes = await fetch("/api/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamName: DEFAULT_TEAM_NAME,
+          domain: DEFAULT_DOMAIN,
+        }),
+      });
+
+      if (!sessionRes.ok) {
+        const data = await sessionRes.json();
+        throw new Error(data.error || "세션 생성 실패");
+      }
+
+      const sessionData = await sessionRes.json();
+
+      setSessionId(sessionData.sessionId);
+      setCurrentStageKey(sessionData.currentStage || "P1");
+
+      setPhase("chat");
+      setCurrentPhase(1);
+      timer.reset(PHASES[0].time);
+
+      await sendMessage(initMessage, {
+        domain: DEFAULT_DOMAIN,
+        members: DEFAULT_MEMBERS,
+      });
+    } catch (err) {
+      console.error(err);
+      alert("시스템 시작 중 오류가 발생했습니다.");
+    }
   }
 
   function exportResults() {
