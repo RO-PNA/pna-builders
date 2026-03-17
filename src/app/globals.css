@@ -1,14 +1,71 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* ─── Design Tokens ─── */
 :root {
+  /* Background */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111827;
+  --surface: #ffffff;
+  --surface-secondary: #f9fafb;
+
+  /* Text */
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
+  --text-muted: #9ca3af;
+
+  /* Border */
+  --border-default: #d1d5db;
+  --border-light: #e5e7eb;
+
+  /* Brand */
+  --brand-primary: #f97316;
+  --brand-primary-hover: #ea580c;
+  --brand-accent-bg: #fff7ed;
+  --brand-accent-border: #fdba74;
+
+  /* Button disabled */
+  --btn-disabled-bg: #d1d5db;
+  --btn-disabled-text: #ffffff;
+
+  /* Chat */
+  --chat-user-bg: #f97316;
+  --chat-user-text: #ffffff;
+  --chat-assistant-border: var(--border-default);
+  --chat-assistant-text: #111827;
+  --chat-prose-body: #111827;
 }
 
 .dark {
+  /* Background */
   --background: #0a0a0a;
   --foreground: #ededed;
+  --surface: #141414;
+  --surface-secondary: #1a1a1a;
+
+  /* Text */
+  --text-primary: #f3f4f6;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #9ca3af;
+  --text-muted: #71717a;
+
+  /* Border */
+  --border-default: #4b5563;
+  --border-light: #374151;
+
+  /* Brand */
+  --brand-accent-bg: #1c1410;
+  --brand-accent-border: #92400e;
+
+  /* Button disabled */
+  --btn-disabled-bg: #374151;
+  --btn-disabled-text: #6b7280;
+
+  /* Chat */
+  --chat-assistant-border: var(--border-default);
+  --chat-assistant-text: #f3f4f6;
+  --chat-prose-body: #f3f4f6;
 }
 
 @theme inline {
@@ -24,17 +81,18 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.dark .text-gray-400 { color: #9ca3af; }
-.dark .text-gray-500 { color: #9ca3af; }
-.dark .text-gray-600 { color: #a1a1aa; }
+/* ─── Dark mode overrides for Tailwind utilities ─── */
+.dark .text-gray-400 { color: var(--text-muted); }
+.dark .text-gray-500 { color: var(--text-tertiary); }
+.dark .text-gray-600 { color: var(--text-secondary); }
 
-.dark .border-gray-200 { border-color: #374151; }
-.dark .border-gray-300 { border-color: #4b5563; }
+.dark .border-gray-200 { border-color: var(--border-light); }
+.dark .border-gray-300 { border-color: var(--border-default); }
 
-.dark .bg-orange-50 { background-color: #1c1410; }
-.dark .border-orange-200 { border-color: #92400e; }
+.dark .bg-orange-50 { background-color: var(--brand-accent-bg); }
+.dark .border-orange-200 { border-color: var(--brand-accent-border); }
 
-/* Streamdown 코드블록: 외곽 2겹 제거, 안쪽만 남김 */
+/* ─── Streamdown: Code Block ─── */
 [data-streamdown="code-block"] {
   border: none !important;
   background: transparent !important;
@@ -49,25 +107,21 @@ body {
 [data-streamdown="code-block-body"] {
   font-size: inherit !important;
   border-radius: 0.75rem !important;
-  border: 1px solid #d1d5db !important;
+  border: 1px solid var(--border-default) !important;
   background: none !important;
   padding: 1rem !important;
   margin: 0 !important;
-}
-.dark [data-streamdown="code-block-body"] {
-  border-color: #4b5563 !important;
 }
 [data-streamdown="code-block-body"] pre {
   background: none !important;
   margin: 0 !important;
   padding: 0 !important;
 }
-/* 코드블록 줄번호 숨김 */
 [data-streamdown="code-block-body"] span.block::before {
   display: none !important;
 }
 
-/* Streamdown 테이블: 외곽 컨테이너 제거, 테이블에 radius 적용 */
+/* ─── Streamdown: Table ─── */
 [data-streamdown="table-wrapper"] {
   border: none !important;
   background: transparent !important;
@@ -83,13 +137,13 @@ body {
 [data-streamdown="table"] {
   border-radius: 0.5rem !important;
   overflow: hidden !important;
-  border: 1px solid #d1d5db !important;
+  border: 1px solid var(--border-default) !important;
   border-collapse: separate !important;
   border-spacing: 0 !important;
 }
 [data-streamdown="table"] td,
 [data-streamdown="table"] th {
-  border-top: 1px solid #d1d5db !important;
+  border-top: 1px solid var(--border-default) !important;
   border-left: none !important;
   border-right: none !important;
   border-bottom: none !important;
@@ -97,34 +151,16 @@ body {
 [data-streamdown="table"] thead th {
   border-top: none !important;
 }
-.dark [data-streamdown="table"] td,
-.dark [data-streamdown="table"] th {
-  border-color: #4b5563 !important;
-}
-.dark [data-streamdown="table"] {
-  border-color: #4b5563 !important;
-}
 
-/* 어시스턴트 채팅 글씨색 */
+/* ─── Chat: Assistant Message ─── */
 .chat-assistant,
 .chat-assistant *:not(code) {
-  --tw-prose-body: #111827 !important;
-  --tw-prose-headings: #111827 !important;
-  --tw-prose-bold: #111827 !important;
-  --tw-prose-counters: #111827 !important;
-  --tw-prose-bullets: #111827 !important;
-  --sdm-c: #111827 !important;
-  --sdm-fg: #111827 !important;
-  color: #111827 !important;
-}
-.dark .chat-assistant,
-.dark .chat-assistant *:not(code) {
-  --tw-prose-body: #f3f4f6 !important;
-  --tw-prose-headings: #f3f4f6 !important;
-  --tw-prose-bold: #f3f4f6 !important;
-  --tw-prose-counters: #f3f4f6 !important;
-  --tw-prose-bullets: #f3f4f6 !important;
-  --sdm-c: #f3f4f6 !important;
-  --sdm-fg: #f3f4f6 !important;
-  color: #f3f4f6 !important;
+  --tw-prose-body: var(--chat-prose-body) !important;
+  --tw-prose-headings: var(--chat-prose-body) !important;
+  --tw-prose-bold: var(--chat-prose-body) !important;
+  --tw-prose-counters: var(--chat-prose-body) !important;
+  --tw-prose-bullets: var(--chat-prose-body) !important;
+  --sdm-c: var(--chat-prose-body) !important;
+  --sdm-fg: var(--chat-prose-body) !important;
+  color: var(--chat-assistant-text) !important;
 }

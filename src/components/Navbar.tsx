@@ -10,7 +10,7 @@ export default async function Navbar() {
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <header className="bg-orange-500 text-black p-2 mb-4">
+    <header className="bg-orange-500 text-black px-2 h-10 fixed top-0 left-0 right-0 z-50 flex items-center">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Link href="/" className="text-2xl" title="PNA">

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Streamdown } from "streamdown";
 import "streamdown/styles.css";
+import Avatar, { genConfig } from "react-nice-avatar";
 
 type Phase = "setup" | "chat";
 type Message = { role: "user" | "assistant"; content: string };
@@ -50,7 +51,16 @@ const PHASES = [
   { id: 6, name: "피칭", time: 20 },
 ];
 
-type VipInfo = { emoji: string; name: string; role: string; concern: string };
+type VipInfo = {
+  emoji: string;
+  name: string;
+  role: string;
+  concern: string;
+  avatarSeed: string;
+  sex: "man" | "woman";
+  /** 이 VIP가 메인으로 등장하는 Phase ID 목록 */
+  mainPhases: number[];
+};
 type DomainDetail = {
   vips: VipInfo[];
   metrics: { label: string; value: string }[];
@@ -59,9 +69,9 @@ type DomainDetail = {
 const DOMAIN_INFO: Record<string, DomainDetail> = {
   A: {
     vips: [
-      { emoji: "👔", name: "박진호", role: "대표", concern: "MAU 성장, 투자 스토리" },
-      { emoji: "👩‍💼", name: "이수연", role: "가맹점 대표", concern: "가맹점 매출, 수수료" },
-      { emoji: "📱", name: "김도윤", role: "파워유저", concern: "리워드, UX, 속도" },
+      { emoji: "👔", name: "박진호", role: "대표", concern: "MAU 성장, 투자 스토리", avatarSeed: "parkjinho-ceo", sex: "man", mainPhases: [1, 3, 5, 6] },
+      { emoji: "👩‍💼", name: "이수연", role: "가맹점 대표", concern: "가맹점 매출, 수수료", avatarSeed: "leesuyeon-store", sex: "woman", mainPhases: [2, 3, 4] },
+      { emoji: "📱", name: "김도윤", role: "파워유저", concern: "리워드, UX, 속도", avatarSeed: "kimdoyun-user", sex: "man", mainPhases: [1, 2, 4] },
     ],
     metrics: [
       { label: "MAU", value: "42만 (횡보)" },
@@ -74,9 +84,9 @@ const DOMAIN_INFO: Record<string, DomainDetail> = {
   },
   B: {
     vips: [
-      { emoji: "👔", name: "한지원", role: "CFO", concern: "멤버십 매출, LTV, 유료 전환율" },
-      { emoji: "🛒", name: "최예린", role: "비멤버 유저", concern: "무료 체험, 큐레이션 정확도" },
-      { emoji: "🌾", name: "박소미", role: "농가 대표", concern: "공정 노출, 수수료" },
+      { emoji: "👔", name: "한지원", role: "CFO", concern: "멤버십 매출, LTV, 유료 전환율", avatarSeed: "hanjiwon-cfo", sex: "woman", mainPhases: [1, 3, 5, 6] },
+      { emoji: "🛒", name: "최예린", role: "비멤버 유저", concern: "무료 체험, 큐레이션 정확도", avatarSeed: "choiyerin-user", sex: "woman", mainPhases: [1, 2, 4] },
+      { emoji: "🌾", name: "박소미", role: "농가 대표", concern: "공정 노출, 수수료", avatarSeed: "parksomi-farm", sex: "woman", mainPhases: [2, 3, 4] },
     ],
     metrics: [
       { label: "MAU", value: "18만" },
@@ -89,9 +99,9 @@ const DOMAIN_INFO: Record<string, DomainDetail> = {
   },
   C: {
     vips: [
-      { emoji: "👔", name: "정민규", role: "대표", concern: "DAU, 시청 시간, 글로벌" },
-      { emoji: "🎬", name: "한새별", role: "탑 크리에이터", concern: "수익 분배, 알고리즘" },
-      { emoji: "📱", name: "이하은", role: "Z세대 시청자", concern: "추천 다양성, 커뮤니티" },
+      { emoji: "👔", name: "정민규", role: "대표", concern: "DAU, 시청 시간, 글로벌", avatarSeed: "jeongminkyu-ceo", sex: "man", mainPhases: [1, 3, 5, 6] },
+      { emoji: "🎬", name: "한새별", role: "탑 크리에이터", concern: "수익 분배, 알고리즘", avatarSeed: "hansaebyeol-creator", sex: "woman", mainPhases: [2, 3, 4] },
+      { emoji: "📱", name: "이하은", role: "Z세대 시청자", concern: "추천 다양성, 커뮤니티", avatarSeed: "leehaeun-viewer", sex: "woman", mainPhases: [1, 2, 4] },
     ],
     metrics: [
       { label: "시청자 MAU", value: "85만" },
@@ -104,9 +114,9 @@ const DOMAIN_INFO: Record<string, DomainDetail> = {
   },
   D: {
     vips: [
-      { emoji: "👔", name: "윤석진", role: "대표", concern: "ARR, 엔터프라이즈 레퍼런스" },
-      { emoji: "🏪", name: "강다은", role: "고객사 마케터", concern: "ROAS, 대시보드, CS" },
-      { emoji: "📊", name: "김준", role: "Meta 파트너", concern: "API 정책, 데이터 정합성" },
+      { emoji: "👔", name: "윤석진", role: "대표", concern: "ARR, 엔터프라이즈 레퍼런스", avatarSeed: "yoonseokjin-ceo", sex: "man", mainPhases: [1, 3, 5, 6] },
+      { emoji: "🏪", name: "강다은", role: "고객사 마케터", concern: "ROAS, 대시보드, CS", avatarSeed: "kangdaeun-marketer", sex: "woman", mainPhases: [2, 3, 4] },
+      { emoji: "📊", name: "김준", role: "Meta 파트너", concern: "API 정책, 데이터 정합성", avatarSeed: "kimjun-partner", sex: "man", mainPhases: [1, 2, 4] },
     ],
     metrics: [
       { label: "활성 고객사", value: "340개사" },
@@ -686,17 +696,14 @@ export default function ChatbotPage() {
 
   return (
     <div
-      className="flex flex-col h-[calc(100dvh-64px)] relative"
+      className="fixed inset-0 top-[40px] flex flex-col overflow-hidden z-10 bg-[var(--background)]"
       style={{
-        width: "100vw",
-        left: "50%",
-        marginLeft: "-50vw",
         paddingLeft: 40,
         paddingRight: 40,
       }}
     >
       {/* Header */}
-      <div className="border-b border-orange-200 px-4 py-2">
+      <div className="border-b border-gray-200 px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="font-semibold text-sm truncate">
             🏥 {teamName} | {domainInfo?.emoji} {domainInfo?.name}
@@ -755,20 +762,46 @@ export default function ChatbotPage() {
         <div className="w-1/3 border-r border-gray-200 flex flex-col overflow-y-auto">
           {/* VIP Section */}
           <div className="p-4 border-b border-gray-200">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">VIP 이해관계자</h3>
-            <div className="space-y-3">
-              {domainDetail?.vips.map((vip, i) => (
-                <div key={i} className="rounded-lg border border-gray-200 p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">{vip.emoji}</span>
-                    <div>
-                      <div className="font-semibold text-sm">{vip.name}</div>
-                      <div className="text-xs text-gray-500">{vip.role}</div>
-                    </div>
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">핵심 이해관계자</h3>
+            <div className="space-y-2">
+              {domainDetail?.vips.map((vip, i) => {
+                const isMain = vip.mainPhases.includes(currentPhase);
+                const config = genConfig(vip.avatarSeed);
+                return (
+                  <div key={i}>
+                    {isMain ? (
+                      <div className="rounded-xl border border-gray-200 p-3 bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800/40">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-12 h-12 shrink-0" shape="circle" {...config} />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-sm">{vip.name}</div>
+                            <div className="text-xs text-gray-500">{vip.role}</div>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                          관심사: {vip.concern}
+                        </div>
+                        <div className="mt-2 flex items-center gap-1.5">
+                          <span className="text-[10px] text-gray-500">신뢰도</span>
+                          <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div className="h-full bg-orange-400 rounded-full transition-all" style={{ width: "50%" }} />
+                          </div>
+                          <span className="text-[10px] font-mono font-bold text-gray-600 dark:text-gray-400">50</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-lg border border-gray-200 px-3 py-2 flex items-center gap-2 opacity-60">
+                        <Avatar className="w-7 h-7 shrink-0" shape="circle" {...config} />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-xs">{vip.name}</div>
+                          <div className="text-[10px] text-gray-500">{vip.role}</div>
+                        </div>
+                        <span className="text-[10px] font-mono text-gray-500">50</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-xs text-gray-600 mt-1">{vip.concern}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -867,8 +900,19 @@ export default function ChatbotPage() {
               className="flex gap-2"
             >
               <textarea
+                ref={(el) => {
+                  if (el) {
+                    el.style.height = "auto";
+                    el.style.height = Math.min(el.scrollHeight, 200) + "px";
+                  }
+                }}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  const el = e.target;
+                  el.style.height = "auto";
+                  el.style.height = Math.min(el.scrollHeight, 200) + "px";
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                     e.preventDefault();
@@ -876,15 +920,21 @@ export default function ChatbotPage() {
                   }
                 }}
                 placeholder="팀 액션을 입력하세요..."
-                rows={2}
+                rows={1}
                 className="flex-1 border border-gray-300 rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
-                style={{ fontSize: 16 }}
+                style={{ fontSize: 16, maxHeight: 200, overflowY: "auto" }}
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="self-end bg-orange-500 text-white px-4 py-2.5 rounded-xl hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-semibold"
-                style={{ fontSize: 16 }}
+                className="self-end bg-orange-500 text-white px-4 py-2.5 rounded-xl hover:bg-orange-600 disabled:cursor-not-allowed transition-colors font-semibold"
+                style={{
+                  ...((!input.trim() || isLoading) ? {
+                    backgroundColor: 'var(--btn-disabled-bg)',
+                    color: 'var(--btn-disabled-text)',
+                  } : {}),
+                  fontSize: 16,
+                }}
               >
                 전송
               </button>
