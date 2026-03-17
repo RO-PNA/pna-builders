@@ -287,7 +287,7 @@ export default function ChatbotPage() {
 
   async function sendMessage(
     content: string,
-    overrides?: { domain?: string; members?: TeamMember[] }
+    overrides?: { domain?: string; members?: TeamMember[]; sessionId?: string; stageKey?: string }
   ) {
     const newMessages: Message[] = [...messages, { role: "user", content }];
     setMessages(newMessages);
@@ -297,6 +297,8 @@ export default function ChatbotPage() {
 
     const activeDomain = overrides?.domain ?? domain;
     const activeMembers = overrides?.members ?? members;
+    const activeSessionId = overrides?.sessionId ?? sessionId;
+    const activeStageKey = overrides?.stageKey ?? currentStageKey;
 
     try {
       const res = await fetch("/api/chatbot", {
@@ -306,8 +308,8 @@ export default function ChatbotPage() {
           messages: newMessages,
           domain: activeDomain,
           teamMembers: activeMembers.filter((m) => m.name.trim()),
-          sessionId,
-          currentStage: currentStageKey,
+          sessionId: activeSessionId,
+          currentStage: activeStageKey,
         }),
       });
 
@@ -403,14 +405,17 @@ export default function ChatbotPage() {
 
       const sessionData = await sessionRes.json();
 
-      setSessionId(sessionData.sessionId);
-      setCurrentStageKey(sessionData.currentStage || "P1");
+      const newSessionId = sessionData.sessionId;
+      const newStageKey = sessionData.currentStage || "P1";
+
+      setSessionId(newSessionId);
+      setCurrentStageKey(newStageKey);
 
       setPhase("chat");
       setCurrentPhase(1);
       timer.reset(PHASES[0].time);
 
-      await sendMessage(initMessage);
+      await sendMessage(initMessage, { sessionId: newSessionId, stageKey: newStageKey });
     } catch (err) {
       console.error(err);
       alert("게임 세션을 시작하지 못했습니다. 다시 시도해주세요.");
@@ -481,8 +486,11 @@ export default function ChatbotPage() {
 
       const sessionData = await sessionRes.json();
 
-      setSessionId(sessionData.sessionId);
-      setCurrentStageKey(sessionData.currentStage || "P1");
+      const newSessionId = sessionData.sessionId;
+      const newStageKey = sessionData.currentStage || "P1";
+
+      setSessionId(newSessionId);
+      setCurrentStageKey(newStageKey);
 
       setPhase("chat");
       setCurrentPhase(1);
@@ -491,6 +499,8 @@ export default function ChatbotPage() {
       await sendMessage(initMessage, {
         domain: DEFAULT_DOMAIN,
         members: DEFAULT_MEMBERS,
+        sessionId: newSessionId,
+        stageKey: newStageKey,
       });
     } catch (err) {
       console.error(err);
