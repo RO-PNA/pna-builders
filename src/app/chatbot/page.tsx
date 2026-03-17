@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { Streamdown } from "streamdown";
+import "streamdown/styles.css";
 
 type Phase = "setup" | "chat";
 type Message = { role: "user" | "assistant"; content: string };
@@ -266,6 +266,15 @@ export default function ChatbotPage() {
     setMembers(updated);
   }
 
+  function fixMarkdownBold(text: string): string {
+    // 기호/이모지 바로 뒤에 **가 붙어있으면 공백 삽입: 🚨**text** → 🚨 **text**
+    // 기호/이모지: 이모지, 괄호, 따옴표 등 비문자/비공백 뒤에 ** 시작
+    let result = text.replace(/([^\s\w*])(\*\*)/g, '$1 $2');
+    // **가 닫힌 뒤 기호/이모지가 바로 붙어있으면 공백 삽입: **text**🚨 → **text** 🚨
+    result = result.replace(/(\*\*)([^\s\w*])/g, '$1 $2');
+    return result;
+  }
+
   async function sendMessage(
     content: string,
     overrides?: { domain?: string; members?: TeamMember[] }
@@ -325,7 +334,7 @@ export default function ChatbotPage() {
 
             if (parsed.text) {
               accumulated += parsed.text;
-              setStreamingContent(accumulated);
+              setStreamingContent(fixMarkdownBold(accumulated));
             }
           } catch (e) {
             if (e instanceof Error && e.message !== "Unexpected end of JSON input") {
@@ -335,7 +344,7 @@ export default function ChatbotPage() {
         }
       }
 
-      setMessages([...newMessages, { role: "assistant", content: accumulated }]);
+      setMessages([...newMessages, { role: "assistant", content: fixMarkdownBold(accumulated) }]);
       setStreamingContent("");
     } catch {
       setMessages([
@@ -791,7 +800,7 @@ export default function ChatbotPage() {
                 <div
                   className={`max-w-[90%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === "user"
                     ? "bg-orange-500 text-white"
-                    : "border border-gray-300 text-inherit"
+                    : "border border-gray-300 chat-assistant"
                     }`}
                 >
                   {msg.role === "user" ? (
@@ -799,11 +808,14 @@ export default function ChatbotPage() {
                       {msg.content}
                     </div>
                   ) : (
-                    <div className="prose max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 [&_table]:text-xs" style={{ fontSize: 16 }}>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {msg.content}
-                      </ReactMarkdown>
-                    </div>
+                    <Streamdown
+                      controls={false}
+                      className="prose dark:prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 text-gray-900 dark:text-gray-100"
+                      mode="static"
+                      style={{ fontSize: 16 }}
+                    >
+                      {msg.content}
+                    </Streamdown>
                   )}
                 </div>
               </div>
@@ -812,12 +824,14 @@ export default function ChatbotPage() {
             {/* Streaming message */}
             {streamingContent && (
               <div className="flex justify-start">
-                <div className="max-w-[90%] sm:max-w-[80%] rounded-2xl px-4 py-3 border border-gray-300 text-inherit">
-                  <div className="prose max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 [&_table]:text-xs" style={{ fontSize: 16 }}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {streamingContent}
-                    </ReactMarkdown>
-                  </div>
+                <div className="max-w-[90%] sm:max-w-[80%] rounded-2xl px-4 py-3 border border-gray-300 chat-assistant">
+                  <Streamdown
+                    className="prose dark:prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 text-gray-900 dark:text-gray-100"
+                    mode="streaming"
+                    style={{ fontSize: 16 }}
+                  >
+                    {streamingContent}
+                  </Streamdown>
                 </div>
               </div>
             )}
