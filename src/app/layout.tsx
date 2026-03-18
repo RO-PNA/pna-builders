@@ -31,7 +31,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} min-h-screen pt-[40px]`}>
         <Navbar />
-        <main className="container mx-auto px-4 py-4 max-w-4xl min-h-[calc(100vh-80px)]">
+        <main className="container mx-auto px-2 py-4 max-w-4xl min-h-[calc(100vh-80px)]">
           {children}
         </main>
       </body>
