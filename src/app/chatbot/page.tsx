@@ -853,9 +853,8 @@ export default function ChatbotPage() {
                   ) : (
                     <Streamdown
                       controls={false}
-                      className="prose dark:prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 text-gray-900 dark:text-gray-100"
+                      className="prose dark:prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 text-base text-gray-900 dark:text-gray-100"
                       mode="static"
-                      style={{ fontSize: 16 }}
                     >
                       {msg.content}
                     </Streamdown>
@@ -869,9 +868,8 @@ export default function ChatbotPage() {
               <div className="flex justify-start">
                 <div className="max-w-[90%] sm:max-w-[80%] rounded-2xl px-4 py-3 border border-gray-300 chat-assistant">
                   <Streamdown
-                    className="prose dark:prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 text-gray-900 dark:text-gray-100"
+                    className="prose dark:prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-table:my-2 prose-hr:my-2 text-base text-gray-900 dark:text-gray-100"
                     mode="streaming"
-                    style={{ fontSize: 16 }}
                   >
                     {streamingContent}
                   </Streamdown>
