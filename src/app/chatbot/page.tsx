@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Streamdown } from "streamdown";
 import "streamdown/styles.css";
 import Avatar, { genConfig } from "react-nice-avatar";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 type Phase = "setup" | "chat";
 type Message = { role: "user" | "assistant"; content: string };
@@ -36,19 +37,19 @@ const FRAMEWORK_EMOJI: Record<string, string> = {
 };
 
 const DOMAINS = [
-  { key: "A", emoji: "💳", name: "페이플로(PayFlo)", desc: "핀테크 간편결제 — CC 천장 도달" },
-  { key: "B", emoji: "🥬", name: "프레시마켓(FreshMarket)", desc: "이커머스 멤버십 — 세그먼트별 Churn 격차" },
-  { key: "C", emoji: "🎬", name: "클립비(ClipB)", desc: "숏폼 플랫폼 — 양면 시장 교차 효과" },
-  { key: "D", emoji: "📊", name: "애드포커스(AdFocus)", desc: "광고 SaaS — B2B TAM 확장" },
+  { key: "A", emoji: "💳", name: "페이플로(PayFlo)", desc: "핀테크 간편결제 — Activation→Retention 병목" },
+  { key: "B", emoji: "🥬", name: "프레시마켓(FreshMarket)", desc: "이커머스 멤버십 — Revenue 전환율 저조" },
+  { key: "C", emoji: "🎬", name: "클립비(ClipB)", desc: "숏폼 플랫폼 — 양면 Growth Loop 붕괴" },
+  { key: "D", emoji: "📊", name: "애드포커스(AdFocus)", desc: "광고 SaaS — B2B Acquisition 둔화" },
 ];
 
 const PHASES = [
   { id: 1, name: "문제 감지", time: 15 },
-  { id: 2, name: "문제 분해", time: 15 },
-  { id: 3, name: "원인 추적", time: 20 },
-  { id: 4, name: "가설 검증", time: 25 },
-  { id: 5, name: "종합", time: 15 },
-  { id: 6, name: "피칭", time: 20 },
+  { id: 2, name: "문제 탐색", time: 15 },
+  { id: 3, name: "문제 분해", time: 15 },
+  { id: 4, name: "원인 추적", time: 20 },
+  { id: 5, name: "가설 검증", time: 25 },
+  { id: 6, name: "종합", time: 15 },
 ];
 
 type VipInfo = {
@@ -60,71 +61,79 @@ type VipInfo = {
   sex: "man" | "woman";
   /** 이 VIP가 메인으로 등장하는 Phase ID 목록 */
   mainPhases: number[];
+  raiseActions: string;
+  lowerActions: string;
+  initialComment: string;
+};
+type MetricTrend = {
+  label: string;
+  value: string;
+  trend: [string, string, string, string]; // 3개월 전, 2개월 전, 1개월 전, 현재
 };
 type DomainDetail = {
   vips: VipInfo[];
-  metrics: { label: string; value: string }[];
+  metrics: MetricTrend[];
 };
 
 const DOMAIN_INFO: Record<string, DomainDetail> = {
   A: {
     vips: [
-      { emoji: "👔", name: "박진호", role: "대표", concern: "MAU 성장, 투자 스토리", avatarSeed: "parkjinho-ceo", sex: "man", mainPhases: [1, 3, 5, 6] },
-      { emoji: "👩‍💼", name: "이수연", role: "가맹점 대표", concern: "가맹점 매출, 수수료", avatarSeed: "leesuyeon-store", sex: "woman", mainPhases: [2, 3, 4] },
-      { emoji: "📱", name: "김도윤", role: "파워유저", concern: "리워드, UX, 속도", avatarSeed: "kimdoyun-user", sex: "man", mainPhases: [1, 2, 4] },
+      { emoji: "👔", name: "박진호", role: "대표", concern: "MAU 성장, 투자 스토리", avatarSeed: "parkjinho-ceo", sex: "man", mainPhases: [1, 6], raiseActions: "성장 루프 확장, 공격적 KPI", lowerActions: "보수적 전략", initialComment: "MAU가 3개월째 제자리입니다. 투자 미팅이 다음 달인데..." },
+      { emoji: "👩‍💼", name: "이수연", role: "가맹점 대표", concern: "가맹점 매출, 수수료", avatarSeed: "leesuyeon-store", sex: "woman", mainPhases: [4, 5], raiseActions: "가맹점 혜택 강화", lowerActions: "유저만 우대", initialComment: "가맹점을 2배 늘렸는데 왜 매출은 그대로죠? 수수료만 나가요." },
+      { emoji: "📱", name: "김도윤", role: "파워유저", concern: "리워드, UX, 속도", avatarSeed: "kimdoyun-user", sex: "man", mainPhases: [2, 3], raiseActions: "UX·리워드 개선", lowerActions: "리워드 축소", initialComment: "요즘 리워드가 줄었어요. 다른 페이 앱도 써보기 시작했습니다." },
     ],
     metrics: [
-      { label: "MAU", value: "42만 (횡보)" },
-      { label: "DAU", value: "8.2만" },
-      { label: "일 신규 유입", value: "1,400명" },
-      { label: "월 이탈률", value: "~10%" },
-      { label: "가맹점", value: "12,000개" },
-      { label: "리텐션 M1/M3/M6", value: "48% / 29% / 22%" },
+      { label: "MAU", value: "42만", trend: ["44만", "43만", "42.5만", "42만"] },
+      { label: "DAU", value: "8.2만", trend: ["9.1만", "8.8만", "8.5만", "8.2만"] },
+      { label: "일 신규 유입", value: "1,400명", trend: ["1,700명", "1,600명", "1,500명", "1,400명"] },
+      { label: "월 이탈률", value: "~10%", trend: ["7.8%", "8.5%", "9.2%", "10%"] },
+      { label: "가맹점", value: "12,000개", trend: ["10,800개", "11,200개", "11,600개", "12,000개"] },
+      { label: "리텐션 M1", value: "48%", trend: ["54%", "52%", "50%", "48%"] },
     ],
   },
   B: {
     vips: [
-      { emoji: "👔", name: "한지원", role: "CFO", concern: "멤버십 매출, LTV, 유료 전환율", avatarSeed: "hanjiwon-cfo", sex: "woman", mainPhases: [1, 3, 5, 6] },
-      { emoji: "🛒", name: "최예린", role: "비멤버 유저", concern: "무료 체험, 큐레이션 정확도", avatarSeed: "choiyerin-user", sex: "woman", mainPhases: [1, 2, 4] },
-      { emoji: "🌾", name: "박소미", role: "농가 대표", concern: "공정 노출, 수수료", avatarSeed: "parksomi-farm", sex: "woman", mainPhases: [2, 3, 4] },
+      { emoji: "👔", name: "한지원", role: "CFO", concern: "멤버십 매출, LTV, 유료 전환율", avatarSeed: "hanjiwon-cfo", sex: "woman", mainPhases: [1, 6], raiseActions: "수익성 개선, 멤버십 확대", lowerActions: "무료 확대, 비용 증가", initialComment: "비멤버 89%가 3개월 내 이탈. 마케팅비를 태우는 거나 같아요." },
+      { emoji: "🛒", name: "최예린", role: "비멤버 유저", concern: "무료 체험, 큐레이션 정확도", avatarSeed: "choiyerin-user", sex: "woman", mainPhases: [2, 3], raiseActions: "무료 체험 혜택, 큐레이션 강화", lowerActions: "무료 기능 축소", initialComment: "첫 주문은 해봤는데, 매달 4,900원 낼 이유를 모르겠어요." },
+      { emoji: "🌾", name: "박소미", role: "농가 대표", concern: "공정 노출, 수수료", avatarSeed: "parksomi-farm", sex: "woman", mainPhases: [4, 5], raiseActions: "소규모 농가 우선 노출", lowerActions: "대형 브랜드만 우대", initialComment: "대형 브랜드만 상단이에요. 소규모 농가는 노출이 안 됩니다." },
     ],
     metrics: [
-      { label: "MAU", value: "18만" },
-      { label: "유료 멤버", value: "1.44만 (8%)" },
-      { label: "멤버 M3 리텐션", value: "68%" },
-      { label: "비멤버 M3 리텐션", value: "12%" },
-      { label: "일 신규 유입", value: "950명" },
-      { label: "비멤버 이탈률", value: "2.8%/일" },
+      { label: "MAU", value: "18만", trend: ["20만", "19.5만", "18.8만", "18만"] },
+      { label: "유료 멤버", value: "1.44만", trend: ["1.6만", "1.56만", "1.50만", "1.44만"] },
+      { label: "멤버 M3 리텐션", value: "68%", trend: ["74%", "72%", "70%", "68%"] },
+      { label: "비멤버 M3 리텐션", value: "12%", trend: ["16%", "15%", "13%", "12%"] },
+      { label: "일 신규 유입", value: "950명", trend: ["1,200명", "1,100명", "1,020명", "950명"] },
+      { label: "비멤버 이탈률", value: "2.8%/일", trend: ["2.0%/일", "2.2%/일", "2.5%/일", "2.8%/일"] },
     ],
   },
   C: {
     vips: [
-      { emoji: "👔", name: "정민규", role: "대표", concern: "DAU, 시청 시간, 글로벌", avatarSeed: "jeongminkyu-ceo", sex: "man", mainPhases: [1, 3, 5, 6] },
-      { emoji: "🎬", name: "한새별", role: "탑 크리에이터", concern: "수익 분배, 알고리즘", avatarSeed: "hansaebyeol-creator", sex: "woman", mainPhases: [2, 3, 4] },
-      { emoji: "📱", name: "이하은", role: "Z세대 시청자", concern: "추천 다양성, 커뮤니티", avatarSeed: "leehaeun-viewer", sex: "woman", mainPhases: [1, 2, 4] },
+      { emoji: "👔", name: "정민규", role: "대표", concern: "DAU, 시청 시간, 글로벌", avatarSeed: "jeongminkyu-ceo", sex: "man", mainPhases: [1, 6], raiseActions: "성장 지표 개선, 글로벌 진출", lowerActions: "보수적 전략, 비용 증가만", initialComment: "시청 시간이 떨어지고 있어요. 글로벌 진출을 준비해야 하는데..." },
+      { emoji: "🎬", name: "한새별", role: "탑 크리에이터", concern: "수익 분배, 알고리즘", avatarSeed: "hansaebyeol-creator", sex: "woman", mainPhases: [4, 5], raiseActions: "수익 분배 인상, 창작 도구 제공", lowerActions: "알고리즘 편향, 수익 동결", initialComment: "경쟁 플랫폼에서 독점 계약 제안이 왔어요. 수익 분배를 재고해주셔야..." },
+      { emoji: "📱", name: "이하은", role: "Z세대 시청자", concern: "추천 다양성, 커뮤니티", avatarSeed: "leehaeun-viewer", sex: "woman", mainPhases: [2, 3], raiseActions: "추천 다양성, 커뮤니티 기능", lowerActions: "상위 크리에이터만 노출", initialComment: "요즘 매번 비슷한 영상만 떠서 좀 지루해졌어요." },
     ],
     metrics: [
-      { label: "시청자 MAU", value: "85만" },
-      { label: "크리에이터 MAU", value: "1.2만" },
-      { label: "시청 시간", value: "38분/일 (-15%)" },
-      { label: "업로드", value: "4,200건/일 (-22%)" },
-      { label: "시청자 이탈률", value: "1.4%/일" },
-      { label: "수익 분배율", value: "40%" },
+      { label: "시청자 MAU", value: "85만", trend: ["98만", "95만", "90만", "85만"] },
+      { label: "크리에이터 MAU", value: "1.2만", trend: ["1.6만", "1.5만", "1.35만", "1.2만"] },
+      { label: "시청 시간", value: "38분/일", trend: ["48분/일", "45분/일", "42분/일", "38분/일"] },
+      { label: "업로드", value: "4,200건/일", trend: ["5,800건/일", "5,400건/일", "4,800건/일", "4,200건/일"] },
+      { label: "시청자 이탈률", value: "1.4%/일", trend: ["0.7%/일", "0.9%/일", "1.1%/일", "1.4%/일"] },
+      { label: "수익 분배율", value: "40%", trend: ["40%", "40%", "40%", "40%"] },
     ],
   },
   D: {
     vips: [
-      { emoji: "👔", name: "윤석진", role: "대표", concern: "ARR, 엔터프라이즈 레퍼런스", avatarSeed: "yoonseokjin-ceo", sex: "man", mainPhases: [1, 3, 5, 6] },
-      { emoji: "🏪", name: "강다은", role: "고객사 마케터", concern: "ROAS, 대시보드, CS", avatarSeed: "kangdaeun-marketer", sex: "woman", mainPhases: [2, 3, 4] },
-      { emoji: "📊", name: "김준", role: "Meta 파트너", concern: "API 정책, 데이터 정합성", avatarSeed: "kimjun-partner", sex: "man", mainPhases: [1, 2, 4] },
+      { emoji: "👔", name: "윤석진", role: "대표", concern: "ARR, 엔터프라이즈 레퍼런스", avatarSeed: "yoonseokjin-ceo", sex: "man", mainPhases: [1, 6], raiseActions: "엔터프라이즈 확대, 글로벌 진출", lowerActions: "SMB만 유지", initialComment: "ARR 100억 달성하려면 엔터프라이즈를 뚫어야 합니다." },
+      { emoji: "🏪", name: "강다은", role: "고객사 마케터", concern: "ROAS, 대시보드, CS", avatarSeed: "kangdaeun-marketer", sex: "woman", mainPhases: [4, 5], raiseActions: "기능 개선, CS 강화", lowerActions: "엔터프라이즈만 신경, SMB 무시", initialComment: "대시보드 로딩이 느려요. 메타 데이터도 하루 늦게 반영되고요." },
+      { emoji: "📊", name: "김준", role: "Meta 파트너", concern: "API 정책, 데이터 정합성", avatarSeed: "kimjun-partner", sex: "man", mainPhases: [2, 3], raiseActions: "API 정합성 개선, 정책 준수", lowerActions: "API 정책 무시, 데이터 불일치 방치", initialComment: "API v19 전환 기한이 2개월 남았습니다. 미대응 시 연동 중단됩니다." },
     ],
     metrics: [
-      { label: "활성 고객사", value: "340개사" },
-      { label: "월 신규 도입", value: "25개사" },
-      { label: "월 이탈", value: "3개사 (0.88%)" },
-      { label: "ARPU", value: "월 89만원" },
-      { label: "TAM", value: "국내 ~2,000개사" },
-      { label: "핵심 타겟", value: "~800개사" },
+      { label: "활성 고객사", value: "340개사", trend: ["298개사", "310개사", "325개사", "340개사"] },
+      { label: "월 신규 도입", value: "25개사", trend: ["32개사", "30개사", "28개사", "25개사"] },
+      { label: "월 이탈", value: "3개사", trend: ["1개사", "2개사", "2개사", "3개사"] },
+      { label: "ARPU", value: "월 89만원", trend: ["월 94만원", "월 92만원", "월 90만원", "월 89만원"] },
+      { label: "TAM", value: "~2,000개사", trend: ["2,000개사", "2,000개사", "2,000개사", "2,000개사"] },
+      { label: "핵심 타겟", value: "~800개사", trend: ["800개사", "800개사", "800개사", "800개사"] },
     ],
   },
 };
@@ -211,6 +220,8 @@ export default function ChatbotPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [currentStageKey, setCurrentStageKey] = useState("P1");
   const [showSystemModal, setShowSystemModal] = useState(false);
+  const [showTrendModal, setShowTrendModal] = useState(false);
+  const [selectedVip, setSelectedVip] = useState<VipInfo | null>(null);
   const [systemPassword, setSystemPassword] = useState("");
   const [systemError, setSystemError] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -778,35 +789,30 @@ export default function ChatbotPage() {
                 const isMain = vip.mainPhases.includes(currentPhase);
                 const config = genConfig(vip.avatarSeed);
                 return (
-                  <div key={i}>
+                  <div key={i} className="cursor-pointer" onClick={() => setSelectedVip(vip)}>
                     {isMain ? (
-                      <div className="rounded-xl border border-gray-200 p-3 bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800/40">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-12 h-12 shrink-0" shape="circle" {...config} />
-                          <div className="flex-1 min-w-0">
+                      <div className="rounded-xl border border-gray-200 p-3 bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800/40 hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="w-[108px] h-[108px] shrink-0 rounded-lg" shape="rounded" {...config} />
+                          <div className="flex-1 min-w-0 py-0.5">
                             <div className="font-bold text-sm">{vip.name}</div>
                             <div className="text-xs text-gray-500">{vip.role}</div>
+                            <div className="mt-1.5 text-xs text-gray-600 dark:text-gray-400">
+                              {vip.concern}
+                            </div>
+                            <div className="mt-2 flex items-center gap-1.5">
+                              <span className="text-[10px] text-gray-500">만족도</span>
+                              <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div className="h-full bg-orange-400 rounded-full transition-all" style={{ width: "50%" }} />
+                              </div>
+                              <span className="text-[10px] font-mono font-bold text-gray-600 dark:text-gray-400">50</span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
-                          관심사: {vip.concern}
-                        </div>
-                        <div className="mt-2 flex items-center gap-1.5">
-                          <span className="text-[10px] text-gray-500">신뢰도</span>
-                          <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                            <div className="h-full bg-orange-400 rounded-full transition-all" style={{ width: "50%" }} />
-                          </div>
-                          <span className="text-[10px] font-mono font-bold text-gray-600 dark:text-gray-400">50</span>
                         </div>
                       </div>
                     ) : (
-                      <div className="rounded-lg border border-gray-200 px-3 py-2 flex items-center gap-2 opacity-60">
-                        <Avatar className="w-7 h-7 shrink-0" shape="circle" {...config} />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-xs">{vip.name}</div>
-                          <div className="text-[10px] text-gray-500">{vip.role}</div>
-                        </div>
-                        <span className="text-[10px] font-mono text-gray-500">50</span>
+                      <div className="rounded-lg border border-gray-200 px-3 py-1.5 flex items-center gap-2 opacity-40 hover:opacity-60 transition-opacity">
+                        <span className="text-[10px] text-gray-500">{vip.role}</span>
                       </div>
                     )}
                   </div>
@@ -826,6 +832,13 @@ export default function ChatbotPage() {
                     <span className="font-medium text-xs">{m.value}</span>
                   </div>
                 ))}
+                <button
+                  onClick={() => setShowTrendModal(true)}
+                  className="w-full mt-3 text-xs font-medium py-1.5 rounded-lg border transition-colors"
+                  style={{ color: 'var(--text-secondary)', borderColor: 'var(--border-default)' }}
+                >
+                  자세히 보기
+                </button>
               </div>
             )}
           </div>
@@ -928,9 +941,9 @@ export default function ChatbotPage() {
                   }
                 }}
                 placeholder="팀 액션을 입력하세요..."
-                rows={1}
-                className="flex-1 border border-gray-300 rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
-                style={{ fontSize: 16, maxHeight: 200, overflowY: "auto" }}
+                rows={3}
+                className="flex-1 border border-gray-300 rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400 [&]:scrollbar-none [&]:[-ms-overflow-style:none] [&]:[-webkit-overflow-scrolling:touch]"
+                style={{ fontSize: 16, maxHeight: 200, overflowY: "auto", scrollbarWidth: "none" }}
               />
               <button
                 type="submit"
@@ -950,6 +963,146 @@ export default function ChatbotPage() {
           </div>
         </div>
       </div>
+
+      {/* Trend Modal */}
+      {showTrendModal && domainDetail && (() => {
+        const parseNum = (s: string) => {
+          const m = s.match(/([\d,.]+)/);
+          return m ? parseFloat(m[1].replace(/,/g, '')) : 0;
+        };
+        const months = ['3개월 전', '2개월 전', '1개월 전', '현재'];
+        return (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50" onClick={() => setShowTrendModal(false)}>
+            <div
+              className="rounded-xl border shadow-lg w-[95%] max-w-2xl max-h-[90vh] overflow-y-auto p-6"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border-default)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>3개월 추이</h2>
+                <button onClick={() => setShowTrendModal(false)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+              </div>
+              <div className="space-y-8">
+                {domainDetail.metrics.map((m, i) => {
+                  const chartData = months.map((month, j) => ({
+                    month,
+                    value: parseNum(m.trend[j]),
+                    label: m.trend[j],
+                  }));
+                  const first = chartData[0].value;
+                  const last = chartData[3].value;
+                  const changeRate = first !== 0 ? ((last - first) / first) * 100 : 0;
+                  const changeStr = changeRate === 0 ? '0%' : `${changeRate > 0 ? '+' : ''}${changeRate.toFixed(1)}%`;
+                  const changeColor = changeRate > 0 ? '#22c55e' : changeRate < 0 ? '#ef4444' : 'var(--text-muted)';
+                  return (
+                    <div key={i}>
+                      <div className="flex items-baseline justify-between mb-2">
+                        <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{m.label}</span>
+                        <span className="text-sm font-bold" style={{ color: changeColor }}>{changeStr}</span>
+                      </div>
+                      <ResponsiveContainer width="100%" height={120}>
+                        <LineChart data={chartData} margin={{ top: 5, right: 10, bottom: 0, left: 10 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" vertical={false} />
+                          <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+                          <YAxis hide domain={['dataMin - dataMin * 0.1', 'dataMax + dataMax * 0.1']} />
+                          <Tooltip
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            formatter={(_v: any, _n: any, entry: any) => [entry?.payload?.label ?? _v, m.label]}
+                            contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border-default)', borderRadius: 8, fontSize: 13 }}
+                            labelStyle={{ color: 'var(--text-secondary)' }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="value"
+                            stroke="#f97316"
+                            strokeWidth={2.5}
+                            dot={{ r: 5, fill: '#f97316', strokeWidth: 0 }}
+                            activeDot={{ r: 7, fill: '#f97316' }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* VIP Detail Modal */}
+      {selectedVip && (() => {
+        const config = genConfig(selectedVip.avatarSeed);
+        const isActive = selectedVip.mainPhases.includes(currentPhase);
+        return (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50" onClick={() => setSelectedVip(null)}>
+            <div
+              className="rounded-xl border shadow-lg w-[90%] max-w-md p-5"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border-default)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-14 h-14 shrink-0" shape="circle" {...config} />
+                  <div>
+                    <div className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>{selectedVip.name}</div>
+                    <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>{selectedVip.role}</div>
+                    {isActive && (
+                      <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 font-medium">
+                        현재 활성
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button onClick={() => setSelectedVip(null)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="rounded-lg p-3" style={{ background: 'var(--surface-secondary)' }}>
+                  <div className="text-xs font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>첫 마디</div>
+                  <p className="text-sm italic" style={{ color: 'var(--text-primary)' }}>
+                    &ldquo;{selectedVip.initialComment}&rdquo;
+                  </p>
+                </div>
+
+                <div>
+                  <div className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-muted)' }}>관심사</div>
+                  <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{selectedVip.concern}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-lg p-3 border" style={{ borderColor: '#22c55e33', background: '#22c55e0a' }}>
+                    <div className="text-xs font-semibold mb-1" style={{ color: '#22c55e' }}>만족도 상승</div>
+                    <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{selectedVip.raiseActions}</p>
+                  </div>
+                  <div className="rounded-lg p-3 border" style={{ borderColor: '#ef444433', background: '#ef44440a' }}>
+                    <div className="text-xs font-semibold mb-1" style={{ color: '#ef4444' }}>만족도 하락</div>
+                    <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{selectedVip.lowerActions}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-muted)' }}>등장 Phase</div>
+                  <div className="flex gap-1.5">
+                    {[1, 2, 3, 4, 5, 6].map((p) => (
+                      <span
+                        key={p}
+                        className="text-xs font-mono px-2 py-0.5 rounded"
+                        style={{
+                          background: selectedVip.mainPhases.includes(p) ? 'var(--brand-primary)' : 'var(--surface-secondary)',
+                          color: selectedVip.mainPhases.includes(p) ? '#fff' : 'var(--text-muted)',
+                        }}
+                      >
+                        P{p}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

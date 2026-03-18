@@ -2,6 +2,7 @@ import React from 'react';
 import { createSupabaseServer } from '@/utils/supabase/server';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import CommentSection from '@/components/CommentSection';
 
 export const revalidate = 0;
 
@@ -90,6 +91,8 @@ export default async function ItemPage({ params }: Props) {
                     {item.summary}
                 </div>
             )}
+
+            <CommentSection itemId={item.id} />
         </article>
     );
 }

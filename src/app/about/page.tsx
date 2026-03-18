@@ -1,14 +1,37 @@
+import Image from "next/image";
+
+const GALLERY_IMAGES = [
+  { src: "/images/about/about_1.jpeg", alt: "PNA 활동 사진 1" },
+  { src: "/images/about/about_2.jpg", alt: "PNA 활동 사진 2" },
+  { src: "/images/about/about_3.png", alt: "PNA 활동 사진 3" },
+];
+
 export default function AboutPage() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-2">PNA</h1>
       <p className="text-lg text-gray-400 mb-10">Product Network Alumni</p>
 
+      {/* Gallery */}
+      <section className="mb-10 grid grid-cols-3 gap-2 rounded-lg overflow-hidden">
+        {GALLERY_IMAGES.map((img) => (
+          <div key={img.src} className="relative aspect-[4/3]">
+            <Image
+              src={img.src}
+              alt={img.alt}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 33vw, 300px"
+            />
+          </div>
+        ))}
+      </section>
+
       <section className="mb-10">
         <h2 className="text-xl font-semibold mb-3">Why PNA?</h2>
         <p className="text-gray-500 leading-relaxed">
           프로덕트 매니저, 디자이너, 데이터 분석가 등 프로덕트 직군은
-          현업에서도, 링크드인에서도 같은 대학 동문을 만나기 어렵습니다.
+          현업에서도, 링크드인에서도 같은 대학 동문을 만나기 어렵습니다. <br />
           PNA는 대학 동문이라는 신뢰를 기반으로,
           프로덕트 직무 종사자들이 서로를 발견하고 연결되는 네트워크입니다.
         </p>
