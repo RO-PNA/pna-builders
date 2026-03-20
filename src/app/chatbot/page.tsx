@@ -37,19 +37,19 @@ const FRAMEWORK_EMOJI: Record<string, string> = {
 };
 
 const DOMAINS = [
-  { key: "A", emoji: "💳", name: "페이플로(PayFlo)", desc: "핀테크 간편결제 — Activation→Retention 병목" },
-  { key: "B", emoji: "🥬", name: "프레시마켓(FreshMarket)", desc: "이커머스 멤버십 — Revenue 전환율 저조" },
-  { key: "C", emoji: "🎬", name: "클립비(ClipB)", desc: "숏폼 플랫폼 — 양면 Growth Loop 붕괴" },
-  { key: "D", emoji: "📊", name: "애드포커스(AdFocus)", desc: "광고 SaaS — B2B Acquisition 둔화" },
+  { key: "A", emoji: "💳", name: "페이플로(PayFlo)", category: "핀테크 · 간편결제", desc: "오프라인+온라인 결제를 1.2초 만에 처리하는 간편결제 앱이다.\n론칭 18개월 만에 MAU 42만, 가맹점 12,000개를 확보했지만 3개월째 성장이 멈췄다.\n가맹점은 2배로 늘렸는데 리텐션은 계속 하락하고 있다.", strength: "업계 최저 수수료(1.5%), NFC 오프라인 터치결제, 자동 리워드 적립", competitors: "토스, 카카오페이" },
+  { key: "B", emoji: "🥬", name: "프레시마켓(FreshMarket)", category: "커머스 · 멤버십", desc: "AI 큐레이션으로 취향에 맞는 신선식품을 추천하고 새벽배송까지 해주는 구독형 서비스다.\n유료 멤버(월 4,900원)의 리텐션은 68%로 높지만, 전체 유저의 92%인 비멤버가 3개월 내 89% 이탈한다.\n유료 전환율이 8%에서 정체되어 있다.", strength: "산지 직송 새벽배송, AI 맞춤 식단 큐레이션, 소규모 농가 직거래 마켓", competitors: "마켓컬리, 오아시스마켓" },
+  { key: "C", emoji: "🎬", name: "클립비(ClipB)", category: "콘텐츠 · 숏폼 비디오", desc: "15~60초 숏폼에 특화된 비디오 플랫폼이다.\n론칭 10개월 만에 시청자 85만을 모았으나, 탑 크리에이터의 경쟁사 이탈이 시작됐다.\n업로드 -22%, 시청 시간 -15%의 악순환이 발생하고 있다.", strength: "AI 자동 자막·편집 도구, 듀엣/리믹스 협업 기능, 실시간 라이브 숏폼", competitors: "틱톡, 유튜브 쇼츠" },
+  { key: "D", emoji: "📊", name: "애드포커스(AdFocus)", category: "광고 · B2B SaaS", desc: "메타·구글·네이버 광고를 하나의 대시보드에서 통합 관리하는 SaaS다.\n활성 고객사 340개, 월 신규 25개사를 유치하고 있으나 SMB 시장 포화가 다가오고 있다.\nARPU도 하락 추세이며, 엔터프라이즈 확장에 난항을 겪고 있다.", strength: "AI 예산 자동 배분 엔진, 3대 매체 실시간 통합 대시보드, 원클릭 크로스채널 리포트", competitors: "애드저스트, 앱스플라이어" },
 ];
 
 const PHASES = [
-  { id: 1, name: "문제 감지", time: 15 },
-  { id: 2, name: "문제 탐색", time: 15 },
-  { id: 3, name: "문제 분해", time: 15 },
-  { id: 4, name: "원인 추적", time: 20 },
-  { id: 5, name: "가설 검증", time: 25 },
-  { id: 6, name: "종합", time: 15 },
+  { id: 1, name: "문제 감지", time: 8 },
+  { id: 2, name: "문제 탐색", time: 8 },
+  { id: 3, name: "문제 분해", time: 8 },
+  { id: 4, name: "원인 추적", time: 12 },
+  { id: 5, name: "가설 검증", time: 14 },
+  { id: 6, name: "종합", time: 10 },
 ];
 
 type VipInfo = {
@@ -57,13 +57,14 @@ type VipInfo = {
   name: string;
   role: string;
   concern: string;
+  situation: string;
   avatarSeed: string;
   sex: "man" | "woman";
-  /** 이 VIP가 메인으로 등장하는 Phase ID 목록 */
   mainPhases: number[];
   raiseActions: string;
   lowerActions: string;
   initialComment: string;
+  initialSatisfaction: number;
 };
 type MetricTrend = {
   label: string;
@@ -78,9 +79,9 @@ type DomainDetail = {
 const DOMAIN_INFO: Record<string, DomainDetail> = {
   A: {
     vips: [
-      { emoji: "👔", name: "박진호", role: "대표", concern: "MAU 성장, 투자 스토리", avatarSeed: "parkjinho-ceo", sex: "man", mainPhases: [1, 6], raiseActions: "성장 루프 확장, 공격적 KPI", lowerActions: "보수적 전략", initialComment: "MAU가 3개월째 제자리입니다. 투자 미팅이 다음 달인데..." },
-      { emoji: "👩‍💼", name: "이수연", role: "가맹점 대표", concern: "가맹점 매출, 수수료", avatarSeed: "leesuyeon-store", sex: "woman", mainPhases: [4, 5], raiseActions: "가맹점 혜택 강화", lowerActions: "유저만 우대", initialComment: "가맹점을 2배 늘렸는데 왜 매출은 그대로죠? 수수료만 나가요." },
-      { emoji: "📱", name: "김도윤", role: "파워유저", concern: "리워드, UX, 속도", avatarSeed: "kimdoyun-user", sex: "man", mainPhases: [2, 3], raiseActions: "UX·리워드 개선", lowerActions: "리워드 축소", initialComment: "요즘 리워드가 줄었어요. 다른 페이 앱도 써보기 시작했습니다." },
+      { emoji: "👔", name: "박진호", role: "대표", concern: "MAU 성장, 투자 스토리", situation: "MAU가 3개월째 41~43만에서 횡보 중이고, 다음 달 시리즈B 투자 미팅을 앞두고 있습니다. 투자자에게 보여줄 성장 스토리가 필요한 상황에서, 지표는 정체되고 DAU도 하락세라 초조한 상태입니다.", avatarSeed: "parkjinho-ceo", sex: "man", mainPhases: [1, 6], raiseActions: "성장 루프 확장, 공격적 KPI", lowerActions: "보수적 전략", initialComment: "MAU가 3개월째 제자리입니다. 투자 미팅이 다음 달인데...", initialSatisfaction: 35 },
+      { emoji: "👩‍💼", name: "이수연", role: "가맹점 대표", concern: "가맹점 매출, 수수료", situation: "페이플로와 제휴해 가맹점을 6개월 만에 6,000→12,000개로 2배 확장했지만, 유저 트래픽 증가는 미미합니다. 수수료는 계속 나가는데 가맹점당 결제 건수는 오히려 줄어, 적자 구조에 대한 불만이 쌓인 상태입니다.", avatarSeed: "leesuyeon-store", sex: "woman", mainPhases: [4, 5], raiseActions: "가맹점 혜택 강화", lowerActions: "유저만 우대", initialComment: "가맹점을 2배 늘렸는데 왜 매출은 그대로죠? 수수료만 나가요.", initialSatisfaction: 30 },
+      { emoji: "📱", name: "김도윤", role: "파워유저", concern: "리워드, UX, 속도", situation: "월 15회 이상 결제하는 헤비유저였으나, 최근 리워드 적립률이 절반으로 줄면서 체감 혜택이 급감했습니다. 경쟁 페이 앱 3개를 번갈아 쓰기 시작했고, 결제 외에는 앱을 열 이유가 없다고 느끼는 상태입니다.", avatarSeed: "kimdoyun-user", sex: "man", mainPhases: [2, 3], raiseActions: "UX·리워드 개선", lowerActions: "리워드 축소", initialComment: "요즘 리워드가 줄었어요. 다른 페이 앱도 써보기 시작했습니다.", initialSatisfaction: 40 },
     ],
     metrics: [
       { label: "MAU", value: "42만", trend: ["44만", "43만", "42.5만", "42만"] },
@@ -93,9 +94,9 @@ const DOMAIN_INFO: Record<string, DomainDetail> = {
   },
   B: {
     vips: [
-      { emoji: "👔", name: "한지원", role: "CFO", concern: "멤버십 매출, LTV, 유료 전환율", avatarSeed: "hanjiwon-cfo", sex: "woman", mainPhases: [1, 6], raiseActions: "수익성 개선, 멤버십 확대", lowerActions: "무료 확대, 비용 증가", initialComment: "비멤버 89%가 3개월 내 이탈. 마케팅비를 태우는 거나 같아요." },
-      { emoji: "🛒", name: "최예린", role: "비멤버 유저", concern: "무료 체험, 큐레이션 정확도", avatarSeed: "choiyerin-user", sex: "woman", mainPhases: [2, 3], raiseActions: "무료 체험 혜택, 큐레이션 강화", lowerActions: "무료 기능 축소", initialComment: "첫 주문은 해봤는데, 매달 4,900원 낼 이유를 모르겠어요." },
-      { emoji: "🌾", name: "박소미", role: "농가 대표", concern: "공정 노출, 수수료", avatarSeed: "parksomi-farm", sex: "woman", mainPhases: [4, 5], raiseActions: "소규모 농가 우선 노출", lowerActions: "대형 브랜드만 우대", initialComment: "대형 브랜드만 상단이에요. 소규모 농가는 노출이 안 됩니다." },
+      { emoji: "👔", name: "한지원", role: "CFO", concern: "멤버십 매출, LTV, 유료 전환율", situation: "비멤버의 89%가 3개월 내 이탈하고 있어 신규 유입에 쏟는 마케팅비(월 2억)가 사실상 소진되고 있습니다. 유료 멤버 전환율은 8%에 불과하고, 비멤버 LTV가 멤버의 1/6 수준이라 수익 구조가 위태로운 상태입니다.", avatarSeed: "hanjiwon-cfo", sex: "woman", mainPhases: [1, 6], raiseActions: "수익성 개선, 멤버십 확대", lowerActions: "무료 확대, 비용 증가", initialComment: "비멤버 89%가 3개월 내 이탈. 마케팅비를 태우는 거나 같아요.", initialSatisfaction: 35 },
+      { emoji: "🛒", name: "최예린", role: "비멤버 유저", concern: "무료 체험, 큐레이션 정확도", situation: "첫 주문은 해봤지만 월 4,900원 멤버십의 차별화된 혜택을 체감하지 못하고 있습니다. 큐레이션 추천이 자신의 취향과 맞지 않고, 무료 상태에서 할 수 있는 것이 제한적이라 재방문할 이유를 찾지 못하는 상태입니다.", avatarSeed: "choiyerin-user", sex: "woman", mainPhases: [2, 3], raiseActions: "무료 체험 혜택, 큐레이션 강화", lowerActions: "무료 기능 축소", initialComment: "첫 주문은 해봤는데, 매달 4,900원 낼 이유를 모르겠어요.", initialSatisfaction: 40 },
+      { emoji: "🌾", name: "박소미", role: "농가 대표", concern: "공정 노출, 수수료", situation: "소규모 농가임에도 품질 좋은 유기농 채소를 공급하고 있지만, 검색·추천 상단은 대형 브랜드가 독점하고 있어 노출이 거의 없습니다. 수수료는 대형 브랜드와 동일하게 부과되면서 판매 데이터도 제공받지 못해 불공정하다고 느끼는 상태입니다.", avatarSeed: "parksomi-farm", sex: "woman", mainPhases: [4, 5], raiseActions: "소규모 농가 우선 노출", lowerActions: "대형 브랜드만 우대", initialComment: "대형 브랜드만 상단이에요. 소규모 농가는 노출이 안 됩니다.", initialSatisfaction: 30 },
     ],
     metrics: [
       { label: "MAU", value: "18만", trend: ["20만", "19.5만", "18.8만", "18만"] },
@@ -108,9 +109,9 @@ const DOMAIN_INFO: Record<string, DomainDetail> = {
   },
   C: {
     vips: [
-      { emoji: "👔", name: "정민규", role: "대표", concern: "DAU, 시청 시간, 글로벌", avatarSeed: "jeongminkyu-ceo", sex: "man", mainPhases: [1, 6], raiseActions: "성장 지표 개선, 글로벌 진출", lowerActions: "보수적 전략, 비용 증가만", initialComment: "시청 시간이 떨어지고 있어요. 글로벌 진출을 준비해야 하는데..." },
-      { emoji: "🎬", name: "한새별", role: "탑 크리에이터", concern: "수익 분배, 알고리즘", avatarSeed: "hansaebyeol-creator", sex: "woman", mainPhases: [4, 5], raiseActions: "수익 분배 인상, 창작 도구 제공", lowerActions: "알고리즘 편향, 수익 동결", initialComment: "경쟁 플랫폼에서 독점 계약 제안이 왔어요. 수익 분배를 재고해주셔야..." },
-      { emoji: "📱", name: "이하은", role: "Z세대 시청자", concern: "추천 다양성, 커뮤니티", avatarSeed: "leehaeun-viewer", sex: "woman", mainPhases: [2, 3], raiseActions: "추천 다양성, 커뮤니티 기능", lowerActions: "상위 크리에이터만 노출", initialComment: "요즘 매번 비슷한 영상만 떠서 좀 지루해졌어요." },
+      { emoji: "👔", name: "정민규", role: "대표", concern: "DAU, 시청 시간, 글로벌", situation: "시청자 MAU가 98만→85만으로 급락하고 일평균 시청 시간도 48분→38분으로 떨어졌습니다. 글로벌 진출을 준비 중이었으나 국내 지표가 무너지면서 이사회 압박이 커지고 있고, 크리에이터 이탈이 콘텐츠 품질 하락으로 이어지는 악순환을 우려하는 상태입니다.", avatarSeed: "jeongminkyu-ceo", sex: "man", mainPhases: [1, 6], raiseActions: "성장 지표 개선, 글로벌 진출", lowerActions: "보수적 전략, 비용 증가만", initialComment: "시청 시간이 떨어지고 있어요. 글로벌 진출을 준비해야 하는데...", initialSatisfaction: 35 },
+      { emoji: "🎬", name: "한새별", role: "탑 크리에이터", concern: "수익 분배, 알고리즘", situation: "팔로워 12만의 탑 크리에이터지만 수익 분배율 40%에 불만이 큽니다. 경쟁 플랫폼에서 분배율 60% + 독점 계약금을 제안받은 상태이며, 추천 알고리즘이 상위 3% 크리에이터에게 71% 노출을 몰아줘 중간 크리에이터들의 불만을 대변하는 입장이기도 합니다.", avatarSeed: "hansaebyeol-creator", sex: "woman", mainPhases: [4, 5], raiseActions: "수익 분배 인상, 창작 도구 제공", lowerActions: "알고리즘 편향, 수익 동결", initialComment: "경쟁 플랫폼에서 독점 계약 제안이 왔어요. 수익 분배를 재고해주셔야...", initialSatisfaction: 25 },
+      { emoji: "📱", name: "이하은", role: "Z세대 시청자", concern: "추천 다양성, 커뮤니티", situation: "매일 30분 이상 시청하는 활성 유저였으나, 최근 추천 피드에 비슷한 영상만 반복 노출되면서 흥미를 잃어가고 있습니다. 좋아하던 중소 크리에이터들의 업로드가 줄어든 것도 체감하고, 댓글·커뮤니티 기능이 부족해 다른 플랫폼으로 소통을 옮기는 중입니다.", avatarSeed: "leehaeun-viewer", sex: "woman", mainPhases: [2, 3], raiseActions: "추천 다양성, 커뮤니티 기능", lowerActions: "상위 크리에이터만 노출", initialComment: "요즘 매번 비슷한 영상만 떠서 좀 지루해졌어요.", initialSatisfaction: 45 },
     ],
     metrics: [
       { label: "시청자 MAU", value: "85만", trend: ["98만", "95만", "90만", "85만"] },
@@ -123,9 +124,9 @@ const DOMAIN_INFO: Record<string, DomainDetail> = {
   },
   D: {
     vips: [
-      { emoji: "👔", name: "윤석진", role: "대표", concern: "ARR, 엔터프라이즈 레퍼런스", avatarSeed: "yoonseokjin-ceo", sex: "man", mainPhases: [1, 6], raiseActions: "엔터프라이즈 확대, 글로벌 진출", lowerActions: "SMB만 유지", initialComment: "ARR 100억 달성하려면 엔터프라이즈를 뚫어야 합니다." },
-      { emoji: "🏪", name: "강다은", role: "고객사 마케터", concern: "ROAS, 대시보드, CS", avatarSeed: "kangdaeun-marketer", sex: "woman", mainPhases: [4, 5], raiseActions: "기능 개선, CS 강화", lowerActions: "엔터프라이즈만 신경, SMB 무시", initialComment: "대시보드 로딩이 느려요. 메타 데이터도 하루 늦게 반영되고요." },
-      { emoji: "📊", name: "김준", role: "Meta 파트너", concern: "API 정책, 데이터 정합성", avatarSeed: "kimjun-partner", sex: "man", mainPhases: [2, 3], raiseActions: "API 정합성 개선, 정책 준수", lowerActions: "API 정책 무시, 데이터 불일치 방치", initialComment: "API v19 전환 기한이 2개월 남았습니다. 미대응 시 연동 중단됩니다." },
+      { emoji: "👔", name: "윤석진", role: "대표", concern: "ARR, 엔터프라이즈 레퍼런스", situation: "ARR 100억 목표를 세웠지만 현재 ARPU 89만원 × 340개사 = ARR 36억 수준에 머물고 있습니다. SMB 시장(TAM 2,000개사) 포화가 다가오고 있어 엔터프라이즈 확장이 필수적인데, 중견 기업들은 커스텀 리포팅과 전담 매니저를 요구하며 쉽게 도입하지 않는 상황입니다.", avatarSeed: "yoonseokjin-ceo", sex: "man", mainPhases: [1, 6], raiseActions: "엔터프라이즈 확대, 글로벌 진출", lowerActions: "SMB만 유지", initialComment: "ARR 100억 달성하려면 엔터프라이즈를 뚫어야 합니다.", initialSatisfaction: 40 },
+      { emoji: "🏪", name: "강다은", role: "고객사 마케터", concern: "ROAS, 대시보드, CS", situation: "월 광고비 1,500만원을 집행하는 중견 고객사 마케터인데, 대시보드 로딩이 10초 이상 걸리고 메타 광고 데이터가 하루 늦게 반영됩니다. CS 문의에 대한 응답도 평균 48시간이 걸려, 엔터프라이즈 기능에만 집중하는 회사 방향에 기존 고객이 소외된다고 느끼는 상태입니다.", avatarSeed: "kangdaeun-marketer", sex: "woman", mainPhases: [4, 5], raiseActions: "기능 개선, CS 강화", lowerActions: "엔터프라이즈만 신경, SMB 무시", initialComment: "대시보드 로딩이 느려요. 메타 데이터도 하루 늦게 반영되고요.", initialSatisfaction: 35 },
+      { emoji: "📊", name: "김준", role: "Meta 파트너", concern: "API 정책, 데이터 정합성", situation: "Meta API v19 전환 기한이 2개월 남았는데 애드포커스의 대응이 지연되고 있습니다. 미전환 시 API 연동이 중단되어 메타 광고 데이터를 아예 가져올 수 없게 되며, 이는 고객사 60%에 직접 영향을 미칩니다. 데이터 정합성 이슈도 3건 이상 미해결 상태로 파트너십 유지가 위태로운 상황입니다.", avatarSeed: "kimjun-partner", sex: "man", mainPhases: [2, 3], raiseActions: "API 정합성 개선, 정책 준수", lowerActions: "API 정책 무시, 데이터 불일치 방치", initialComment: "API v19 전환 기한이 2개월 남았습니다. 미대응 시 연동 중단됩니다.", initialSatisfaction: 25 },
     ],
     metrics: [
       { label: "활성 고객사", value: "340개사", trend: ["298개사", "310개사", "325개사", "340개사"] },
@@ -164,6 +165,28 @@ function clearState() {
   } catch {
     // silently fail
   }
+}
+
+function extractSatisfaction(msgs: Message[], vips: VipInfo[]): Record<string, number> {
+  const scores: Record<string, number> = {};
+  for (const vip of vips) {
+    scores[vip.name] = vip.initialSatisfaction;
+  }
+  for (const msg of msgs) {
+    if (msg.role !== "assistant") continue;
+    for (const vip of vips) {
+      const name = vip.name;
+      const regex = new RegExp(`\\[?${name}\\]?\\s*\\((\\d+)(?:\\/100)?\\)`, 'g');
+      let match;
+      while ((match = regex.exec(msg.content)) !== null) {
+        const score = parseInt(match[1]);
+        if (score >= 0 && score <= 100) {
+          scores[name] = score;
+        }
+      }
+    }
+  }
+  return scores;
 }
 
 function detectPhase(messages: Message[]): number {
@@ -219,6 +242,7 @@ export default function ChatbotPage() {
   const [streamingContent, setStreamingContent] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [currentStageKey, setCurrentStageKey] = useState("P1");
+  const [satisfaction, setSatisfaction] = useState<Record<string, number>>({});
   const [showSystemModal, setShowSystemModal] = useState(false);
   const [showTrendModal, setShowTrendModal] = useState(false);
   const [selectedVip, setSelectedVip] = useState<VipInfo | null>(null);
@@ -267,6 +291,13 @@ export default function ChatbotPage() {
     }
   }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Update satisfaction from assistant messages
+  useEffect(() => {
+    if (domain && DOMAIN_INFO[domain]) {
+      setSatisfaction(extractSatisfaction(messages, DOMAIN_INFO[domain].vips));
+    }
+  }, [messages, domain]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingContent]);
@@ -288,12 +319,7 @@ export default function ChatbotPage() {
   }
 
   function fixMarkdownBold(text: string): string {
-    // 기호/이모지 바로 뒤에 **가 붙어있으면 공백 삽입: 🚨**text** → 🚨 **text**
-    // 기호/이모지: 이모지, 괄호, 따옴표 등 비문자/비공백 뒤에 ** 시작
-    let result = text.replace(/([^\s\w*])(\*\*)/g, '$1 $2');
-    // **가 닫힌 뒤 기호/이모지가 바로 붙어있으면 공백 삽입: **text**🚨 → **text** 🚨
-    result = result.replace(/(\*\*)([^\s\w*])/g, '$1 $2');
-    return result;
+    return text.replace(/\*\*/g, '');
   }
 
   async function sendMessage(
@@ -633,10 +659,13 @@ export default function ChatbotPage() {
                   : "border-gray-200 hover:border-orange-300"
                   }`}
               >
-                <div className="font-semibold">
+                <div className="text-xs text-gray-400 dark:text-gray-500 mb-1">{d.category}</div>
+                <div className="font-bold text-base">
                   {d.emoji} {d.name}
                 </div>
-                <div className="text-sm text-gray-500 mt-1">{d.desc}</div>
+                <div className="text-sm text-gray-500 mt-1.5 whitespace-pre-line">{d.desc}</div>
+                <div className="text-xs text-gray-400 dark:text-gray-500 mt-2">특징: {d.strength}</div>
+                <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">경쟁사: {d.competitors}</div>
               </button>
             ))}
           </div>
@@ -803,9 +832,12 @@ export default function ChatbotPage() {
                             <div className="mt-2 flex items-center gap-1.5">
                               <span className="text-[10px] text-gray-500">만족도</span>
                               <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                <div className="h-full bg-orange-400 rounded-full transition-all" style={{ width: "50%" }} />
+                                <div className="h-full rounded-full transition-all" style={{
+                                  width: `${satisfaction[vip.name] ?? 50}%`,
+                                  backgroundColor: (satisfaction[vip.name] ?? 50) >= 60 ? '#22c55e' : (satisfaction[vip.name] ?? 50) <= 35 ? '#ef4444' : '#fb923c',
+                                }} />
                               </div>
-                              <span className="text-[10px] font-mono font-bold text-gray-600 dark:text-gray-400">50</span>
+                              <span className="text-[10px] font-mono font-bold text-gray-600 dark:text-gray-400">{satisfaction[vip.name] ?? 50}</span>
                             </div>
                           </div>
                         </div>
@@ -1058,6 +1090,23 @@ export default function ChatbotPage() {
               </div>
 
               <div className="space-y-4">
+                {/* 만족도 현황 */}
+                {(() => {
+                  const score = satisfaction[selectedVip.name] ?? 50;
+                  const barColor = score >= 60 ? '#22c55e' : score <= 35 ? '#ef4444' : '#fb923c';
+                  return (
+                    <div className="rounded-lg p-3 border" style={{ borderColor: 'var(--border-light)', background: 'var(--surface-secondary)' }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>만족도</span>
+                        <span className="text-lg font-bold font-mono" style={{ color: barColor }}>{score}</span>
+                      </div>
+                      <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${score}%`, backgroundColor: barColor }} />
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <div className="rounded-lg p-3" style={{ background: 'var(--surface-secondary)' }}>
                   <div className="text-xs font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>첫 마디</div>
                   <p className="text-sm italic" style={{ color: 'var(--text-primary)' }}>
@@ -1066,8 +1115,8 @@ export default function ChatbotPage() {
                 </div>
 
                 <div>
-                  <div className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-muted)' }}>관심사</div>
-                  <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{selectedVip.concern}</p>
+                  <div className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-muted)' }}>현재 상황</div>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{selectedVip.situation}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
