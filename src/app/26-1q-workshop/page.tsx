@@ -551,7 +551,7 @@ export default function ChatbotPage() {
   function exportResults() {
     const domainInfo = DOMAINS.find((d) => d.key === domain);
     const lines = [
-      `# Product Autopsy 결과 - ${teamName}`,
+      `# PMF 결과 - ${teamName}`,
       `도메인: ${domainInfo?.emoji} ${domainInfo?.name}`,
       `날짜: ${new Date().toLocaleDateString("ko-KR")}`,
       "",
@@ -570,7 +570,7 @@ export default function ChatbotPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `product-autopsy-${teamName}-${Date.now()}.md`;
+    a.download = `pmf-result-${teamName}-${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -582,9 +582,9 @@ export default function ChatbotPage() {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold mb-2">🏥 Product Autopsy</h1>
+          <h1 className="text-2xl font-bold mb-2">PMF: Problem Mining Framework</h1>
           <p className="text-gray-600">
-            성장이 멈춘 제품을 부검하여 근본 원인을 밝혀내는 팀 기반 시뮬레이션 게임입니다.
+            성장이 멈춘 제품의 문제를 발굴하고 근본 원인을 밝혀내는 팀 기반 시뮬레이션 게임입니다.
             팀 정보를 입력하고 도메인을 선택하세요.
           </p>
         </div>
@@ -773,7 +773,7 @@ export default function ChatbotPage() {
       <div className="border-b border-gray-200 px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="font-semibold text-sm truncate">
-            🏥 {teamName} | {domainInfo?.emoji} {domainInfo?.name}
+            PMF | {teamName} | {domainInfo?.emoji} {domainInfo?.name}
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {/* Timer */}

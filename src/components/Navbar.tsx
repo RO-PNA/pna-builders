@@ -1,6 +1,7 @@
 import LoginButton from './LoginButton';
 import LogoutButton from './LogoutButton';
 import ThemeToggle from './ThemeToggle';
+import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 import { createSupabaseServer } from '@/utils/supabase/server';
@@ -13,8 +14,8 @@ export default async function Navbar() {
     <header className="bg-orange-500 text-black px-2 h-10 fixed top-0 left-0 right-0 z-50 flex items-center">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Link href="/" className="text-2xl" title="PNA">
-            🐧
+          <Link href="/" title="PNA">
+            <Image src="/logo.png" alt="PNA" width={28} height={28} className="rounded-sm" />
           </Link>
           <span className="font-bold">PNA</span>
           <nav className="hidden md:flex space-x-2 text-sm">

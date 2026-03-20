@@ -87,7 +87,6 @@ type FrameworkDetail = {
   trait: string;
   description: string;
   strength: string;
-  synergy: string;
 };
 
 const FRAMEWORK_INFO: Record<string, FrameworkDetail> = {
@@ -97,7 +96,6 @@ const FRAMEWORK_INFO: Record<string, FrameworkDetail> = {
     trait: "문제 정의력",
     description: "복잡한 상황에서 '사실'과 '문제'를 먼저 분리하고, 지금 진짜 답해야 할 질문이 뭔지를 찾아내는 사고방식이다. 팀이 엉뚱한 방향으로 달려가기 전에 논의의 프레임을 잡아주는 역할에 강하다.",
     strength: "혼란스러운 상황에서 핵심을 짚고, 팀 전체가 같은 질문을 바라보게 만드는 능력",
-    synergy: "데이터 분석력(TDCC)을 보완하면, 날카로운 질문에 팩트까지 붙여 설득력이 배가된다",
   },
   tdcc: {
     emoji: "🔍",
@@ -105,7 +103,6 @@ const FRAMEWORK_INFO: Record<string, FrameworkDetail> = {
     trait: "데이터 분석력",
     description: "감이나 의견보다 숫자를 먼저 보고, 추세와 세그먼트를 비교하며 패턴을 찾아내는 사고방식이다. '그거 데이터로 확인해봤어?'가 입버릇인 팩트 기반 의사결정자에 가깝다.",
     strength: "직관이나 감에 의존하지 않고, 데이터 패턴에서 남들이 못 보는 인사이트를 끌어내는 능력",
-    synergy: "근본 원인 추적력(5-Whys)을 보완하면, 데이터가 보여주는 '무엇' 너머의 '왜'까지 설명할 수 있다",
   },
   mece: {
     emoji: "📐",
@@ -113,7 +110,6 @@ const FRAMEWORK_INFO: Record<string, FrameworkDetail> = {
     trait: "구조화 능력",
     description: "문제를 볼 때 '혹시 빠뜨린 게 없나?'를 먼저 생각하고, 가능한 원인과 선택지를 빠짐없이 펼쳐놓는 사고방식이다. 복잡한 문제를 정리정돈해서 팀이 체계적으로 움직이게 만드는 역할에 강하다.",
     strength: "복잡한 문제를 빠짐없이 분해하고, 팀이 체계적으로 우선순위를 정하게 만드는 능력",
-    synergy: "실험 설계력(XYZ)을 보완하면, 구조적으로 정리한 가설을 빠르게 실행으로 옮길 수 있다",
   },
   "5whys": {
     emoji: "🔗",
@@ -121,7 +117,6 @@ const FRAMEWORK_INFO: Record<string, FrameworkDetail> = {
     trait: "근본 원인 추적력",
     description: "표면적인 답에 쉽게 만족하지 않고 '근데 그게 왜?'를 계속 파고드는 사고방식이다. 남들이 당연하게 넘기는 지점에서 진짜 원인을 끄집어내는 역할에 강하다.",
     strength: "남들이 당연하게 넘기는 지점에서 멈춰서, 표면 아래 숨겨진 진짜 원인을 끄집어내는 능력",
-    synergy: "문제 정의력(S-C-Q-A)을 보완하면, 깊이 파고든 원인을 팀이 공감하는 언어로 정리할 수 있다",
   },
   xyz: {
     emoji: "🧪",
@@ -129,9 +124,45 @@ const FRAMEWORK_INFO: Record<string, FrameworkDetail> = {
     trait: "실험 설계력",
     description: "분석보다 실행을 먼저 떠올리고, 작게 실험해서 결과로 증명하려는 사고방식이다. '일단 해보면 알잖아'가 자연스럽게 나오는 실험 중심 의사결정자에 가깝다.",
     strength: "끝없는 분석 대신 빠르게 가설을 세우고, 작은 실험으로 방향을 검증하는 실행력",
-    synergy: "구조화 능력(MECE)을 보완하면, 실험 전에 가능성을 빠짐없이 점검해 실험의 정확도가 올라간다",
   },
 };
+
+// 주유형 + 보조유형 조합별 시너지 제안
+// key: "주유형-보조유형", value: { combo 설명, 보완 역량 }
+const SYNERGY_MAP: Record<string, { combo: string; recommend: string }> = {
+  "scqa-tdcc": { combo: "문제를 날카롭게 정의하고 데이터로 뒷받침할 수 있는 조합이다. 설득력 있는 이슈 레이징에 강하다.", recommend: "구조화 능력(MECE)을 보완하면, 정의한 문제를 빠짐없이 분해해서 실행 계획까지 연결할 수 있다" },
+  "scqa-mece": { combo: "핵심 질문을 찾고 체계적으로 구조화하는 조합이다. 복잡한 문제를 정리해서 팀 방향을 잡는 데 강하다.", recommend: "실험 설계력(XYZ)을 보완하면, 잘 정리된 구조에서 바로 실행 가능한 가설을 뽑아낼 수 있다" },
+  "scqa-5whys": { combo: "문제를 정의하면서 동시에 깊이 파고드는 조합이다. 근본적인 질문을 던지는 데 강하다.", recommend: "데이터 분석력(TDCC)을 보완하면, 깊은 질문에 정량적 근거를 붙여 팀을 움직일 수 있다" },
+  "scqa-xyz": { combo: "핵심 질문을 찾자마자 바로 실험으로 옮기는 조합이다. 빠른 방향 설정과 검증에 강하다.", recommend: "구조화 능력(MECE)을 보완하면, 실험 전에 놓치는 변수 없이 체계적으로 설계할 수 있다" },
+  "tdcc-scqa": { combo: "데이터에서 패턴을 찾고 핵심 질문으로 연결하는 조합이다. 팩트 기반 문제 제기에 강하다.", recommend: "근본 원인 추적력(5-Whys)을 보완하면, 데이터가 보여주는 현상 너머의 '왜'까지 설명할 수 있다" },
+  "tdcc-mece": { combo: "데이터를 분석하면서 구조적으로 정리하는 조합이다. 분석 리포트와 대시보드 설계에 강하다.", recommend: "실험 설계력(XYZ)을 보완하면, 분석 결과를 바로 실험으로 전환해 빠르게 검증할 수 있다" },
+  "tdcc-5whys": { combo: "숫자에서 출발해 근본 원인까지 추적하는 조합이다. '무엇이'와 '왜'를 동시에 답할 수 있다.", recommend: "문제 정의력(S-C-Q-A)을 보완하면, 분석 결과를 팀이 공감하는 하나의 질문으로 정리할 수 있다" },
+  "tdcc-xyz": { combo: "데이터로 가설을 세우고 바로 실험하는 조합이다. 그로스 해킹 사고방식에 가깝다.", recommend: "구조화 능력(MECE)을 보완하면, 실험 설계 시 빠뜨리는 변수 없이 정교하게 설계할 수 있다" },
+  "mece-scqa": { combo: "구조적으로 분해하면서 핵심 질문을 도출하는 조합이다. 전략 문서 작성과 의사결정 프레임에 강하다.", recommend: "데이터 분석력(TDCC)을 보완하면, 구조화한 각 항목에 정량적 근거를 붙일 수 있다" },
+  "mece-tdcc": { combo: "빠짐없이 분류하고 데이터로 검증하는 조합이다. 체계적인 분석에 강하다.", recommend: "근본 원인 추적력(5-Whys)을 보완하면, 각 분류의 표면 아래 진짜 원인을 파악할 수 있다" },
+  "mece-5whys": { combo: "문제를 구조적으로 나누고 각각의 근본 원인을 추적하는 조합이다. 깊이와 넓이를 동시에 잡을 수 있다.", recommend: "실험 설계력(XYZ)을 보완하면, 추적한 원인별로 빠르게 해결책을 실험할 수 있다" },
+  "mece-xyz": { combo: "가능성을 빠짐없이 나열하고 가장 유력한 것을 실험하는 조합이다. 체계적 실험 설계에 강하다.", recommend: "문제 정의력(S-C-Q-A)을 보완하면, 실험의 목적과 방향을 더 명확하게 설정할 수 있다" },
+  "5whys-scqa": { combo: "근본 원인을 파고들면서 핵심 질문으로 정리하는 조합이다. 깊은 통찰을 설득력 있게 전달할 수 있다.", recommend: "데이터 분석력(TDCC)을 보완하면, 추적한 원인에 정량적 증거를 붙여 신뢰도를 높일 수 있다" },
+  "5whys-tdcc": { combo: "'왜'를 추적하면서 데이터로 검증하는 조합이다. 인과관계 분석에 강하다.", recommend: "구조화 능력(MECE)을 보완하면, 원인 추적 과정을 체계적으로 정리해 팀과 공유하기 쉬워진다" },
+  "5whys-mece": { combo: "근본 원인을 추적하면서 구조적으로 분류하는 조합이다. 원인 분석의 깊이와 체계를 동시에 갖출 수 있다.", recommend: "실험 설계력(XYZ)을 보완하면, 찾아낸 근본 원인에 대한 해결책을 빠르게 검증할 수 있다" },
+  "5whys-xyz": { combo: "원인을 파고들다가 바로 실험으로 전환하는 조합이다. 문제 해결 속도가 빠르다.", recommend: "문제 정의력(S-C-Q-A)을 보완하면, 파고든 원인이 정말 맞는 문제인지 한 번 더 점검할 수 있다" },
+  "xyz-scqa": { combo: "빠르게 실험하면서도 핵심 질문을 놓치지 않는 조합이다. 방향성 있는 실험에 강하다.", recommend: "데이터 분석력(TDCC)을 보완하면, 실험 결과를 더 정교하게 해석하고 다음 실험을 설계할 수 있다" },
+  "xyz-tdcc": { combo: "가설을 세우고 데이터로 검증하는 조합이다. 데이터 드리븐 실험에 강하다.", recommend: "구조화 능력(MECE)을 보완하면, 실험 변수를 빠짐없이 통제해 결과의 신뢰도를 높일 수 있다" },
+  "xyz-mece": { combo: "실험을 설계하면서 가능성을 빠짐없이 점검하는 조합이다. 정교한 실험 설계에 강하다.", recommend: "근본 원인 추적력(5-Whys)을 보완하면, 실험이 표면 증상이 아닌 진짜 원인을 겨냥하게 할 수 있다" },
+  "xyz-5whys": { combo: "빠르게 실험하면서 결과의 '왜'를 파고드는 조합이다. 실험 → 학습 루프가 빠르다.", recommend: "문제 정의력(S-C-Q-A)을 보완하면, 실험과 학습의 방향이 비즈니스 핵심 질문과 정렬될 수 있다" },
+};
+
+function getSynergy(mainKey: string, subKey: string) {
+  const combo = SYNERGY_MAP[`${mainKey}-${subKey}`];
+  if (combo) return combo;
+  // fallback: 같은 유형이 1,2등인 경우 (동점 등)
+  const allKeys = Object.keys(FRAMEWORK_INFO);
+  const other = allKeys.find(k => k !== mainKey && k !== subKey) ?? allKeys[0];
+  return {
+    combo: `${FRAMEWORK_INFO[mainKey].trait}이 주도적이며 ${FRAMEWORK_INFO[subKey].trait}이 뒷받침하는 조합이다.`,
+    recommend: `${FRAMEWORK_INFO[other].trait}(${FRAMEWORK_INFO[other].name})을 보완하면 더 균형 잡힌 의사결정이 가능하다`,
+  };
+}
 
 // 5각형 축 정의 (역량 기준)
 const AXES: { key: string; label: string }[] = [
@@ -298,8 +329,9 @@ export default function FrameworkTestPage() {
   if (done) {
     const ranking = getRanking();
     const top = ranking[0];
+    const sub = ranking.length > 1 ? ranking[1] : null;
     const scores = getScores();
-    const pct = getPercentages();
+    const synergy = sub ? getSynergy(top.key, sub.key) : null;
 
     return (
       <div className="max-w-2xl mx-auto py-8 px-4">
@@ -307,8 +339,9 @@ export default function FrameworkTestPage() {
           <h1 className="text-2xl font-bold mb-6">나의 프레임워크 유형</h1>
 
           {/* Top Result */}
-          <div className="rounded-xl border-2 border-orange-500 p-6 mb-6" style={{ background: 'var(--surface)' }}>
+          <div className="rounded-xl border-2 border-orange-500 p-6 mb-4" style={{ background: 'var(--surface)' }}>
             <div className="text-center">
+              <div className="text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>주 유형</div>
               <div className="text-4xl mb-2">{top.emoji}</div>
               <div className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{top.name}</div>
               <div className="text-sm font-medium mt-1" style={{ color: 'var(--brand-primary)' }}>{top.trait}</div>
@@ -316,16 +349,43 @@ export default function FrameworkTestPage() {
             </div>
           </div>
 
-          {/* Strength & Synergy */}
+          {/* Sub Type */}
+          {sub && sub.score > 0 && (
+            <div className="rounded-lg border p-4 mb-6" style={{ borderColor: 'var(--border-default)', background: 'var(--surface)' }}>
+              <div className="flex items-start gap-3">
+                <span className="text-2xl mt-0.5">{FRAMEWORK_INFO[sub.key].emoji}</span>
+                <div className="flex-1">
+                  <div className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>보조 유형</div>
+                  <div className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{FRAMEWORK_INFO[sub.key].name}</div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--brand-primary)' }}>{FRAMEWORK_INFO[sub.key].trait}</div>
+                  <p className="text-sm mt-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{FRAMEWORK_INFO[sub.key].description}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Strength */}
           <div className="grid grid-cols-1 gap-3 mb-6">
             <div className="rounded-lg p-4 border" style={{ borderColor: '#22c55e33', background: '#22c55e08' }}>
               <div className="text-xs font-semibold mb-1.5" style={{ color: '#22c55e' }}>핵심 강점</div>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{top.strength}</p>
             </div>
-            <div className="rounded-lg p-4 border" style={{ borderColor: '#3b82f633', background: '#3b82f608' }}>
-              <div className="text-xs font-semibold mb-1.5" style={{ color: '#3b82f6' }}>이 역량을 보완하면 시너지</div>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{top.synergy}</p>
-            </div>
+
+            {/* Combo Description */}
+            {synergy && (
+              <div className="rounded-lg p-4 border" style={{ borderColor: '#f9731633', background: '#f9731608' }}>
+                <div className="text-xs font-semibold mb-1.5" style={{ color: '#f97316' }}>주 유형 + 보조 유형 조합</div>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{synergy.combo}</p>
+              </div>
+            )}
+
+            {/* Synergy Recommendation */}
+            {synergy && (
+              <div className="rounded-lg p-4 border" style={{ borderColor: '#3b82f633', background: '#3b82f608' }}>
+                <div className="text-xs font-semibold mb-1.5" style={{ color: '#3b82f6' }}>시너지를 위한 보완 역량</div>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{synergy.recommend}</p>
+              </div>
+            )}
           </div>
 
         </div>
