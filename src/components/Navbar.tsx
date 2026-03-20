@@ -20,7 +20,7 @@ export default async function Navbar() {
           <nav className="hidden md:flex space-x-2 text-sm">
             <Link href="/" className="hover:underline">knowledge</Link>
             <span>|</span>
-            <Link href="/chatbot" className="hover:underline">26년-1분기 워크샵</Link>
+            <Link href="/26-1q-workshop" className="hover:underline">26년-1분기 워크샵</Link>
             <span>|</span>
             <Link href="/open-chat" className="hover:underline">open chat</Link>
             <span>|</span>

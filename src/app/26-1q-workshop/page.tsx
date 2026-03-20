@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Streamdown } from "streamdown";
 import "streamdown/styles.css";
 import Avatar, { genConfig } from "react-nice-avatar";
@@ -23,17 +24,19 @@ type GameState = {
 };
 
 const FRAMEWORK_TYPES = [
-  { value: "discovery", label: "고객 발견형 (현장 탐정)" },
-  { value: "structure", label: "구조 분해형 (구조 설계자)" },
-  { value: "causal", label: "원인 추적형 (인과 추적자)" },
-  { value: "hypothesis", label: "가설 실험형 (속도전 실험가)" },
+  { value: "scqa", label: "S-C-Q-A" },
+  { value: "mece", label: "MECE / Logic Tree" },
+  { value: "tdcc", label: "TDCC" },
+  { value: "5whys", label: "5-Whys" },
+  { value: "xyz", label: "XYZ 가설" },
 ];
 
 const FRAMEWORK_EMOJI: Record<string, string> = {
-  discovery: "🔍",
-  structure: "📐",
-  causal: "🔗",
-  hypothesis: "🧪",
+  scqa: "🎯",
+  mece: "📐",
+  tdcc: "🔍",
+  "5whys": "🔗",
+  xyz: "🧪",
 };
 
 const DOMAINS = [
@@ -232,7 +235,7 @@ export default function ChatbotPage() {
   const [phase, setPhase] = useState<Phase>("setup");
   const [teamName, setTeamName] = useState("");
   const [members, setMembers] = useState<TeamMember[]>([
-    { name: "", type: "discovery" },
+    { name: "", type: "scqa" },
   ]);
   const [domain, setDomain] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -303,7 +306,7 @@ export default function ChatbotPage() {
   }, [messages, streamingContent]);
 
   function addMember() {
-    setMembers([...members, { name: "", type: "discovery" }]);
+    setMembers([...members, { name: "", type: "scqa" }]);
   }
 
   function removeMember(index: number) {
@@ -465,7 +468,7 @@ export default function ChatbotPage() {
     setMessages([]);
     setDomain(null);
     setTeamName("");
-    setMembers([{ name: "", type: "discovery" }]);
+    setMembers([{ name: "", type: "scqa" }]);
     setCurrentPhase(1);
     setStreamingContent("");
     setSessionId(null);
@@ -475,10 +478,10 @@ export default function ChatbotPage() {
 
   const DEFAULT_TEAM_NAME = "PNA";
   const DEFAULT_MEMBERS: TeamMember[] = [
-    { name: "Player 1", type: "discovery" },
-    { name: "Player 2", type: "structure" },
-    { name: "Player 3", type: "causal" },
-    { name: "Player 4", type: "hypothesis" },
+    { name: "Player 1", type: "scqa" },
+    { name: "Player 2", type: "mece" },
+    { name: "Player 3", type: "5whys" },
+    { name: "Player 4", type: "xyz" },
   ];
   const DEFAULT_DOMAIN = "A";
 
@@ -586,6 +589,20 @@ export default function ChatbotPage() {
           </p>
         </div>
 
+        {/* Framework Test Banner */}
+        <Link
+          href="/26-1q-workshop/framework-test"
+          className="block mb-6 p-4 rounded-lg border-2 border-orange-200 dark:border-orange-800/40 bg-orange-50 dark:bg-orange-950/20 hover:border-orange-400 transition-all"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-semibold text-sm text-orange-700 dark:text-orange-400">나의 프레임워크 유형 찾기</div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">문제를 정의하고 구조화하는 나만의 방식은? 테스트로 알아보세요</p>
+            </div>
+            <span className="text-orange-500 text-lg shrink-0 ml-3">&rarr;</span>
+          </div>
+        </Link>
+
         {/* Team Name */}
         <div className="mb-6">
           <label className="block font-semibold mb-2">팀 이름</label>
@@ -601,10 +618,10 @@ export default function ChatbotPage() {
         {/* Team Members */}
         <div className="mb-6">
           <label className="block font-semibold mb-2">
-            팀원 (이름 + 프레임워크 유형)
+            팀원 (이름 + 담당 프레임워크)
           </label>
           <p className="text-sm text-gray-500 mb-3">
-            아이스브레이킹 결과에 따라 각 팀원의 유형을 선택해주세요.
+            각 팀원이 담당할 프레임워크를 선택해주세요.
           </p>
           <div className="space-y-2">
             {members.map((member, i) => (
