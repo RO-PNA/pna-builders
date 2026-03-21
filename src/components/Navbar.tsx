@@ -1,6 +1,7 @@
 import LoginButton from './LoginButton';
 import LogoutButton from './LogoutButton';
 import ThemeToggle from './ThemeToggle';
+import MobileMenu from './MobileMenu';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
@@ -29,23 +30,30 @@ export default async function Navbar() {
           </nav>
         </div>
         <div className="flex items-center space-x-2 text-sm">
-          {user && (
-            <>
-              <Link href="/submit" className="hover:underline">submit</Link>
-              <span>|</span>
-            </>
-          )}
-          <ThemeToggle />
-          <span>|</span>
-          {user ? (
-            <>
-              <span className="font-bold">{user.email?.split('@')[0]}</span>
-              <span>|</span>
-              <LogoutButton />
-            </>
-          ) : (
-            <LoginButton />
-          )}
+          <div className="hidden md:flex items-center space-x-2">
+            {user && (
+              <>
+                <Link href="/submit" className="hover:underline">submit</Link>
+                <span>|</span>
+              </>
+            )}
+            <ThemeToggle />
+            <span>|</span>
+            {user ? (
+              <>
+                <span className="font-bold">{user.email?.split('@')[0]}</span>
+                <span>|</span>
+                <LogoutButton />
+              </>
+            ) : (
+              <LoginButton />
+            )}
+          </div>
+          <div className="flex md:hidden items-center space-x-2">
+            <ThemeToggle />
+            {user ? <LogoutButton /> : <LoginButton />}
+            <MobileMenu isLoggedIn={!!user} />
+          </div>
         </div>
       </div>
     </header>

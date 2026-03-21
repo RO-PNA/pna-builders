@@ -2,17 +2,18 @@ import { NextRequest } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { buildSystemPrompt } from "@/lib/chatbot/systemPrompt";
 import { createSupabaseAdmin } from "../../../utils/supabase/admin";
+import { searchKnowledge } from "@/lib/chatbot/knowledge";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
 function getNextStage(currentStage: string, content: string) {
   const text = content.trim();
 
-  if (currentStage === "P1" && text.includes("문제 분해 시작")) return "P2";
-  if (currentStage === "P2" && text.includes("원인 추적 시작")) return "P3";
-  if (currentStage === "P3" && text.includes("가설 검증 시작")) return "P4";
-  if (currentStage === "P4" && text.includes("종합 시작")) return "P5";
-  if (currentStage === "P5" && text.includes("피칭 시작")) return "P6";
+  if (currentStage === "P1" && text.includes("원인 추적 시작")) return "P2";
+  if (currentStage === "P2" && text.includes("문제 분해 시작")) return "P3";
+  if (currentStage === "P3" && text.includes("문제 탐색 시작")) return "P4";
+  if (currentStage === "P4" && text.includes("가설 검증 시작")) return "P5";
+  if (currentStage === "P5" && text.includes("종합 시작")) return "P6";
 
   return currentStage;
 }
@@ -105,8 +106,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const knowledgeItems = await searchKnowledge(supabase, lastMessage);
+    let userMessage = lastMessage;
+    if (knowledgeItems.length > 0) {
+      const refs = knowledgeItems
+        .map(
+          (item, i) =>
+            `[참고자료 ${i + 1}] ${item.title || "(제목 없음)"}\n${item.summary || ""}\n${item.url ? `출처: ${item.url}` : ""}`
+        )
+        .join("\n\n");
+      userMessage = `${lastMessage}\n\n---\n[Knowledge Base 참고자료 — 답변에 관련 내용이 있으면 자연스럽게 인용하세요]\n${refs}`;
+    }
+
     const chat = model.startChat({ history: geminiHistory });
-    const result = await chat.sendMessageStream(lastMessage);
+    const result = await chat.sendMessageStream(userMessage);
 
     const encoder = new TextEncoder();
     let fullAssistantText = "";

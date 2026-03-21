@@ -7,6 +7,49 @@ import "streamdown/styles.css";
 import Avatar, { genConfig } from "react-nice-avatar";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
+function Confetti() {
+  const pieces = Array.from({ length: 60 }, (_, i) => {
+    const colors = ["#f97316", "#facc15", "#34d399", "#60a5fa", "#a78bfa", "#fb7185"];
+    const color = colors[i % colors.length];
+    const left = Math.random() * 100;
+    const delay = Math.random() * 2;
+    const duration = 2 + Math.random() * 2;
+    const size = 6 + Math.random() * 6;
+    const rotation = Math.random() * 360;
+    return (
+      <div
+        key={i}
+        className="absolute animate-confetti-fall"
+        style={{
+          left: `${left}%`,
+          top: -20,
+          width: size,
+          height: size * 1.5,
+          backgroundColor: color,
+          borderRadius: Math.random() > 0.5 ? "50%" : "2px",
+          animationDelay: `${delay}s`,
+          animationDuration: `${duration}s`,
+          transform: `rotate(${rotation}deg)`,
+        }}
+      />
+    );
+  });
+  return (
+    <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
+      {pieces}
+      <style>{`
+        @keyframes confetti-fall {
+          0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        .animate-confetti-fall {
+          animation: confetti-fall linear forwards;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 type Phase = "setup" | "chat";
 type Message = { role: "user" | "assistant"; content: string };
 type TeamMember = { name: string; type: string };
@@ -48,9 +91,9 @@ const DOMAINS = [
 
 const PHASES = [
   { id: 1, name: "문제 감지", time: 8 },
-  { id: 2, name: "문제 탐색", time: 8 },
+  { id: 2, name: "원인 추적", time: 12 },
   { id: 3, name: "문제 분해", time: 8 },
-  { id: 4, name: "원인 추적", time: 12 },
+  { id: 4, name: "문제 탐색", time: 8 },
   { id: 5, name: "가설 검증", time: 14 },
   { id: 6, name: "종합", time: 10 },
 ];
@@ -247,6 +290,9 @@ export default function ChatbotPage() {
   const [currentStageKey, setCurrentStageKey] = useState("P1");
   const [satisfaction, setSatisfaction] = useState<Record<string, number>>({});
   const [showSystemModal, setShowSystemModal] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [showTrendModal, setShowTrendModal] = useState(false);
   const [selectedVip, setSelectedVip] = useState<VipInfo | null>(null);
   const [systemPassword, setSystemPassword] = useState("");
@@ -281,6 +327,17 @@ export default function ChatbotPage() {
       currentStageKey,
     });
   }, [phase, teamName, members, domain, messages, currentPhase, sessionId, currentStageKey, initialized]);
+
+  // Close menu on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    if (showMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
 
   // Track phase changes
   useEffect(() => {
@@ -382,6 +439,11 @@ export default function ChatbotPage() {
 
             if (parsed.stage) {
               setCurrentStageKey(parsed.stage);
+              const stageNum = parseInt(parsed.stage.replace("P", ""));
+              if (!isNaN(stageNum) && stageNum >= 1 && stageNum <= 6) {
+                setCurrentPhase(stageNum);
+                timer.reset(PHASES.find((p) => p.id === stageNum)?.time ?? 15);
+              }
             }
 
             if (parsed.text) {
@@ -396,8 +458,14 @@ export default function ChatbotPage() {
         }
       }
 
-      setMessages([...newMessages, { role: "assistant", content: fixMarkdownBold(accumulated) }]);
+      const finalContent = fixMarkdownBold(accumulated);
+      setMessages([...newMessages, { role: "assistant", content: finalContent }]);
       setStreamingContent("");
+
+      if (finalContent.includes("1-Pager PRD") || finalContent.includes("성장 전략서")) {
+        setShowCelebration(true);
+        setTimeout(() => setShowCelebration(false), 5000);
+      }
     } catch {
       setMessages([
         ...newMessages,
@@ -548,10 +616,10 @@ export default function ChatbotPage() {
     }
   }
 
-  function exportResults() {
+  function exportChat() {
     const domainInfo = DOMAINS.find((d) => d.key === domain);
     const lines = [
-      `# PMF 결과 - ${teamName}`,
+      `# PMF 전체 채팅 - ${teamName}`,
       `도메인: ${domainInfo?.emoji} ${domainInfo?.name}`,
       `날짜: ${new Date().toLocaleDateString("ko-KR")}`,
       "",
@@ -570,7 +638,41 @@ export default function ChatbotPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pmf-result-${teamName}-${Date.now()}.md`;
+    a.download = `pmf-chat-${teamName}-${Date.now()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportPRD() {
+    const assistantMessages = messages
+      .filter((m) => m.role === "assistant")
+      .map((m) => m.content);
+
+    const prdMessage = [...assistantMessages]
+      .reverse()
+      .find((c) => c.includes("1-Pager PRD") || c.includes("성장 전략서"));
+
+    if (!prdMessage) {
+      alert("아직 최종 결과물(PRD)이 생성되지 않았습니다. Phase 6까지 진행해주세요.");
+      return;
+    }
+
+    const domainInfo = DOMAINS.find((d) => d.key === domain);
+    const lines = [
+      `# PMF 결과 - ${teamName}`,
+      `도메인: ${domainInfo?.emoji} ${domainInfo?.name}`,
+      `날짜: ${new Date().toLocaleDateString("ko-KR")}`,
+      "",
+      "---",
+      "",
+      prdMessage,
+    ];
+
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pmf-prd-${teamName}-${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -769,6 +871,7 @@ export default function ChatbotPage() {
         paddingRight: 40,
       }}
     >
+      {showCelebration && <Confetti />}
       {/* Header */}
       <div className="border-b border-gray-200 px-4 py-2">
         <div className="flex items-center justify-between">
@@ -787,19 +890,42 @@ export default function ChatbotPage() {
             >
               ⏱ {timer.display}
             </div>
-            <button
-              onClick={exportResults}
-              className="text-xs text-gray-500 hover:text-orange-600 transition-colors"
-              title="결과 내보내기"
-            >
-              📥 내보내기
-            </button>
-            <button
-              onClick={resetGame}
-              className="text-xs text-gray-500 hover:text-red-500 transition-colors"
-            >
-              초기화
-            </button>
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors p-1"
+                title="메뉴"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              </button>
+              {showMenu && (
+                <div className="absolute right-0 top-8 bg-white dark:bg-[var(--surface)] border border-[var(--border-default)] rounded-lg shadow-lg py-1 z-50 min-w-[140px]">
+                  <button
+                    onClick={() => { exportChat(); setShowMenu(false); }}
+                    className="w-full text-left text-xs px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-secondary)] transition-colors"
+                  >
+                    채팅 내보내기
+                  </button>
+                  <button
+                    onClick={() => { exportPRD(); setShowMenu(false); }}
+                    className="w-full text-left text-xs px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-secondary)] transition-colors"
+                  >
+                    PRD 내보내기
+                  </button>
+                  <div className="border-t border-[var(--border-light)] my-1" />
+                  <button
+                    onClick={() => { setShowMenu(false); resetGame(); }}
+                    className="w-full text-left text-xs px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors"
+                  >
+                    게임 초기화
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
