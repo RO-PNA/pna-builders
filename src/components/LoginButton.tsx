@@ -1,13 +1,17 @@
 'use client'
 
 import { supabase } from '@/utils/supabase/client'
+import { usePathname } from 'next/navigation'
 
 export default function LoginButton() {
+    const pathname = usePathname()
+
     const login = async () => {
+        const next = encodeURIComponent(pathname || '/')
         await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: location.origin,
+                redirectTo: `${location.origin}/auth/callback?next=${next}`,
             },
         })
     }
