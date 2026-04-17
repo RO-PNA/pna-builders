@@ -6,8 +6,8 @@ import Navbar from "@/components/Navbar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "News App",
-  description: "A simple news aggregator",
+  title: "PNA",
+  description: "Product Network Alumni — 대학 동문 프로덕트 직군 네트워크",
 };
 
 const themeScript = `

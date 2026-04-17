@@ -20,20 +20,22 @@ export default async function Navbar() {
           </Link>
           <span className="font-bold">PNA</span>
           <nav className="hidden md:flex space-x-2 text-sm">
-            <Link href="/" className="hover:underline">knowledge</Link>
+            <Link href="/" className="hover:underline">Knowledge</Link>
             <span>|</span>
-            <Link href="/26-1q-workshop" className="hover:underline">26년-1분기 워크샵</Link>
+            <Link href="/events" className="hover:underline">Events</Link>
             <span>|</span>
-            <Link href="/open-chat" className="hover:underline">open chat</Link>
+            <Link href="/26-1q-workshop" className="hover:underline">AX Lab</Link>
             <span>|</span>
-            <Link href="/about" className="hover:underline">about</Link>
+            <Link href="/open-chat" className="hover:underline">Open Chat</Link>
+            <span>|</span>
+            <Link href="/about" className="hover:underline">About</Link>
           </nav>
         </div>
         <div className="flex items-center space-x-2 text-sm">
           <div className="hidden md:flex items-center space-x-2">
             {user && (
               <>
-                <Link href="/submit" className="hover:underline">submit</Link>
+                <Link href="/submit" className="hover:underline">Submit</Link>
                 <span>|</span>
               </>
             )}
@@ -46,12 +48,12 @@ export default async function Navbar() {
                 <LogoutButton />
               </>
             ) : (
-              <LoginButton />
+              <LoginButton label="Login" />
             )}
           </div>
           <div className="flex md:hidden items-center space-x-2">
             <ThemeToggle />
-            {user ? <LogoutButton /> : <LoginButton />}
+            {user ? <LogoutButton /> : <LoginButton label="Login" />}
             <MobileMenu isLoggedIn={!!user} />
           </div>
         </div>

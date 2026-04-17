@@ -790,18 +790,18 @@ export default function ChatbotPage() {
           </div>
         </div>
 
-        {/* Start Button */}
-        <button
-          onClick={startGame}
-          disabled={
-            !teamName.trim() ||
-            !domain ||
-            members.every((m) => !m.name.trim())
-          }
-          className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-        >
-          게임 시작
-        </button>
+        {/* Contact Info */}
+        <div className="w-full mt-2 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            AX Lab 워크샵 체험을 원하시면 아래로 문의해주세요.
+          </p>
+          <a
+            href="mailto:tmddnjs1411@gmail.com"
+            className="inline-block mt-2 text-sm font-semibold text-orange-500 hover:underline"
+          >
+            tmddnjs1411@gmail.com
+          </a>
+        </div>
 
         {/* System Start */}
         <button

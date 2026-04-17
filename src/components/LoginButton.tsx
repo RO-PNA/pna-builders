@@ -3,7 +3,7 @@
 import { supabase } from '@/utils/supabase/client'
 import { usePathname } from 'next/navigation'
 
-export default function LoginButton() {
+export default function LoginButton({ label = 'Login' }: { label?: string }) {
     const pathname = usePathname()
 
     const login = async () => {
@@ -18,7 +18,7 @@ export default function LoginButton() {
 
     return (
         <button onClick={login} className="text-sm font-medium hover:underline">
-            login
+            {label}
         </button>
     )
 }

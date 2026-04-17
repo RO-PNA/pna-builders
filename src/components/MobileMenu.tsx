@@ -46,22 +46,25 @@ export default function MobileMenu({ isLoggedIn }: MobileMenuProps) {
       {open && (
         <div className="absolute right-0 top-9 bg-white dark:bg-[var(--surface)] border border-[var(--border-default)] rounded-lg shadow-lg py-2 z-50 min-w-[160px]">
           <Link href="/" onClick={() => setOpen(false)} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-primary)]">
-            knowledge
+            Knowledge
+          </Link>
+          <Link href="/events" onClick={() => setOpen(false)} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-primary)]">
+            Events
           </Link>
           <Link href="/26-1q-workshop" onClick={() => setOpen(false)} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-primary)]">
-            26년-1분기 워크샵
+            AX Lab
           </Link>
           <Link href="/open-chat" onClick={() => setOpen(false)} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-primary)]">
-            open chat
+            Open Chat
           </Link>
           <Link href="/about" onClick={() => setOpen(false)} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-primary)]">
-            about
+            About
           </Link>
           {isLoggedIn && (
             <>
               <div className="border-t border-[var(--border-light)] my-1" />
               <Link href="/submit" onClick={() => setOpen(false)} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-primary)]">
-                submit
+                Submit
               </Link>
             </>
           )}
