@@ -72,8 +72,25 @@ const EVENTS: EventItem[] = [
     location: "서울 성수동",
     isFree: true,
     registrationUrl: "https://forms.gle/example",
-    status: "upcoming",
+    status: "ongoing",
     isFeatured: true,
+    reviewCount: 0,
+    galleryUrls: [],
+  },
+  {
+    slug: "ai-agent-workshop-26-may",
+    title: "무조건 만드는 나만의 기획 에이전트 워크샵",
+    category: "workshop",
+    summary: "비용을 최소화하며 24시간 업무를 도와주는 기획 에이전트를 8시간 만에 직접 구축하는 프라이빗 워크샵",
+    thumbnailUrl: "/images/about/about_3.png",
+    eventDate: "2026-05-17T10:00:00+09:00",
+    eventEndDate: "2026-05-17T18:00:00+09:00",
+    location: "서울 (추후 안내)",
+    isFree: false,
+    price: "4만원 (정가 8만원)",
+    registrationUrl: "https://forms.gle/example",
+    status: "upcoming",
+    isFeatured: false,
     reviewCount: 0,
     galleryUrls: [],
   },
@@ -181,7 +198,8 @@ function EventCard({ event, muted = false }: { event: EventItem; muted?: boolean
 
 export default function EventsPage() {
   const featured = EVENTS.find((e) => e.isFeatured);
-  const upcoming = EVENTS.filter((e) => e.status === "upcoming" || e.status === "ongoing");
+  const upcoming = EVENTS.filter((e) => e.status === "upcoming");
+  const ongoing = EVENTS.filter((e) => e.status === "ongoing");
   const past = EVENTS.filter((e) => e.status === "ended");
 
   return (
@@ -235,6 +253,20 @@ export default function EventsPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {upcoming.map((event) => (
+              <EventCard key={event.slug} event={event} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Ongoing Events */}
+      {ongoing.length > 0 && (
+        <section className="mb-12">
+          <h2 className="text-lg font-bold mb-4" style={{ color: "var(--text-primary)" }}>
+            진행 중인 행사
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {ongoing.map((event) => (
               <EventCard key={event.slug} event={event} />
             ))}
           </div>
