@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import CommentSection from '@/components/CommentSection';
 import CopyMarkdownButton from '@/components/CopyMarkdownButton';
+import RelatedConcepts from '@/components/RelatedConcepts';
 
 export const revalidate = 0;
 
@@ -111,6 +112,7 @@ export default async function ItemPage({ params }: Props) {
                 </div>
             )}
 
+            <RelatedConcepts itemId={item.id} />
             <CommentSection itemId={item.id} />
         </article>
     );
