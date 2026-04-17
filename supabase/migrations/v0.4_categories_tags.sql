@@ -92,16 +92,9 @@ insert into public.categories (slug, name, parent_id, sort_order) values
 on conflict (slug) do nothing;
 
 -- ─── 기존 items.category 텍스트 → category_id 매핑 ───
--- 기존 값(Article, Trend, News, Resource, Seminar)을 대분류에 매핑
-update public.items set category_id = (select id from public.categories where slug = 'ai')
-  where category in ('Trend') and category_id is null;
-update public.items set category_id = (select id from public.categories where slug = 'business')
-  where category in ('News') and category_id is null;
-update public.items set category_id = (select id from public.categories where slug = 'engineering')
-  where category in ('Resource') and category_id is null;
-update public.items set category_id = (select id from public.categories where slug = 'community')
-  where category in ('Seminar') and category_id is null;
--- 나머지(Article 등)는 AI 기본값
+-- items.category 컬럼이 존재하는 경우에만 실행 (이미 제거된 경우 스킵)
+-- 수동 실행 시 category 컬럼이 없으면 아래를 무시하고 진행
+-- 미분류 아이템에 기본 카테고리(AI) 부여
 update public.items set category_id = (select id from public.categories where slug = 'ai')
   where category_id is null;
 

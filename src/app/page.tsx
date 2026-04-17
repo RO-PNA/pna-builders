@@ -1,6 +1,5 @@
 import NewsItem from "@/components/NewsItem";
 import { createSupabaseServer } from "@/utils/supabase/server";
-import { NewsItemProps } from "@/components/NewsItem";
 import Link from "next/link";
 import CategoryFilter from "@/components/CategoryFilter";
 
@@ -15,71 +14,59 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
 
   const supabase = await createSupabaseServer();
 
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('id, slug, name, parent_id, sort_order')
-    .is('parent_id', null)
-    .order('sort_order');
+  // ── 1단계: 독립 쿼리 병렬 실행 ──
+  const [categoriesRes, catLookupRes, tagLookupRes, commentsRes] = await Promise.all([
+    supabase.from('categories').select('id, slug, name, parent_id, sort_order').is('parent_id', null).order('sort_order'),
+    categorySlug
+      ? supabase.from('categories').select('id').eq('slug', categorySlug).single()
+      : Promise.resolve({ data: null }),
+    tagSlug
+      ? supabase.from('tags').select('id').eq('slug', tagSlug).single()
+      : Promise.resolve({ data: null }),
+    supabase.from('comments').select('id, content, author_name, created_at, item_id').order('created_at', { ascending: false }).limit(10),
+  ]);
 
-  let categoryId: number | undefined;
-  if (categorySlug) {
-    const { data: cat } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('slug', categorySlug)
-      .single();
-    if (cat) categoryId = cat.id;
-  }
+  const categories = categoriesRes.data ?? [];
+  const categoryId = catLookupRes.data?.id as number | undefined;
+  const tagId = tagLookupRes.data?.id as number | undefined;
 
-  let itemIds: number[] | undefined;
-  if (tagSlug) {
-    const { data: tag } = await supabase
-      .from('tags')
-      .select('id')
-      .eq('slug', tagSlug)
-      .single();
-    if (tag) {
-      const { data: itemTags } = await supabase
-        .from('item_tags')
-        .select('item_id')
-        .eq('tag_id', tag.id);
-      itemIds = itemTags?.map((it) => it.item_id) ?? [];
-    }
-  }
+  // ── 2단계: 필터 의존 쿼리 병렬 실행 ──
+  const [childCatsRes, tagItemsRes, popularTagsRes] = await Promise.all([
+    categoryId
+      ? supabase.from('categories').select('id').eq('parent_id', categoryId)
+      : Promise.resolve({ data: null }),
+    tagId
+      ? supabase.from('item_tags').select('item_id').eq('tag_id', tagId)
+      : Promise.resolve({ data: null }),
+    supabase.from('tags').select('slug, name').order('usage_count', { ascending: false }).limit(10),
+  ]);
 
-  const hasCategories = !!(await supabase.from('categories').select('id').limit(1)).data?.length;
+  const popularTags = popularTagsRes.data;
 
+  // ── 3단계: 아이템 쿼리 ──
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let itemsQuery: any = supabase
     .from('items')
-    .select(hasCategories ? '*, categories(slug, name)' : '*')
+    .select('*, categories(slug, name)')
     .order('created_at', { ascending: false });
 
   if (categoryId) {
-    const { data: childCats } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('parent_id', categoryId);
-    const ids = [categoryId, ...(childCats?.map((c) => c.id) ?? [])];
+    const ids = [categoryId, ...(childCatsRes.data?.map((c: { id: number }) => c.id) ?? [])];
     itemsQuery = itemsQuery.in('category_id', ids);
   }
 
-  if (itemIds !== undefined) {
-    if (itemIds.length === 0) {
-      itemsQuery = itemsQuery.in('id', [-1]);
-    } else {
-      itemsQuery = itemsQuery.in('id', itemIds);
-    }
+  if (tagId) {
+    const itemIds = tagItemsRes.data?.map((it: { item_id: number }) => it.item_id) ?? [];
+    itemsQuery = itemsQuery.in('id', itemIds.length > 0 ? itemIds : [-1]);
   }
 
   const { data: items } = await itemsQuery;
 
-  const hasTags = !!(await supabase.from('tags').select('id').limit(1)).data?.length;
-
+  // ── 4단계: 아이템별 태그 조회 ──
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const itemIdsForTags = items?.map((i: any) => i.id) ?? [];
   let itemTagsMap: Record<number, { slug: string; name: string }[]> = {};
-  if (hasTags && itemIdsForTags.length > 0) {
+  if (itemIdsForTags.length > 0) {
     const { data: allItemTags } = await supabase
       .from('item_tags')
       .select('item_id, tags(slug, name)')
@@ -94,16 +81,6 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
     }
   }
 
-  const popularTags = hasTags
-    ? (await supabase.from('tags').select('slug, name').order('usage_count', { ascending: false }).limit(10)).data
-    : null;
-
-  const { data: recentComments } = await supabase
-    .from('comments')
-    .select('id, content, author_name, created_at, item_id')
-    .order('created_at', { ascending: false })
-    .limit(10);
-
   return (
     <div className="flex gap-6">
       <div className="flex-1 min-w-0">
@@ -114,14 +91,12 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
           </Link>
         </div>
 
-        {/* Category Filter */}
         <CategoryFilter
-          categories={categories ?? []}
+          categories={categories}
           activeCategorySlug={categorySlug}
           activeTagSlug={tagSlug}
         />
 
-        {/* Popular Tags */}
         {popularTags && popularTags.length > 0 && !tagSlug && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {popularTags.map((t) => (
@@ -137,7 +112,6 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
           </div>
         )}
 
-        {/* Active tag indicator */}
         {tagSlug && (
           <div className="flex items-center gap-2 mb-4">
             <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -179,9 +153,9 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
           <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
             최신 댓글
           </h2>
-          {recentComments && recentComments.length > 0 ? (
+          {commentsRes.data && commentsRes.data.length > 0 ? (
             <ul className="space-y-3">
-              {recentComments.map((c) => (
+              {commentsRes.data.map((c) => (
                 <li key={c.id}>
                   <Link href={`/item/${c.item_id}`} className="block group">
                     <p
