@@ -51,11 +51,11 @@ export default function MobileMenu({ isLoggedIn }: MobileMenuProps) {
           <Link href="/events" onClick={() => setOpen(false)} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-primary)]">
             Events
           </Link>
+          <Link href="/career" onClick={() => setOpen(false)} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-primary)]">
+            Career
+          </Link>
           <Link href="/26-1q-workshop" onClick={() => setOpen(false)} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-primary)]">
             AX Lab
-          </Link>
-          <Link href="/open-chat" onClick={() => setOpen(false)} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-primary)]">
-            Open Chat
           </Link>
           <Link href="/about" onClick={() => setOpen(false)} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-[var(--text-primary)]">
             About

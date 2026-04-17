@@ -24,9 +24,9 @@ export default async function Navbar() {
             <span>|</span>
             <Link href="/events" className="hover:underline">Events</Link>
             <span>|</span>
-            <Link href="/26-1q-workshop" className="hover:underline">AX Lab</Link>
+            <Link href="/career" className="hover:underline">Career</Link>
             <span>|</span>
-            <Link href="/open-chat" className="hover:underline">Open Chat</Link>
+            <Link href="/26-1q-workshop" className="hover:underline">AX Lab</Link>
             <span>|</span>
             <Link href="/about" className="hover:underline">About</Link>
           </nav>

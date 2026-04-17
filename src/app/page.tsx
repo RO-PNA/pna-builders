@@ -49,7 +49,8 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
 
   const hasCategories = !!(await supabase.from('categories').select('id').limit(1)).data?.length;
 
-  let itemsQuery = supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let itemsQuery: any = supabase
     .from('items')
     .select(hasCategories ? '*, categories(slug, name)' : '*')
     .order('created_at', { ascending: false });
@@ -75,7 +76,8 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
 
   const hasTags = !!(await supabase.from('tags').select('id').limit(1)).data?.length;
 
-  const itemIdsForTags = items?.map((i) => i.id) ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const itemIdsForTags = items?.map((i: any) => i.id) ?? [];
   let itemTagsMap: Record<number, { slug: string; name: string }[]> = {};
   if (hasTags && itemIdsForTags.length > 0) {
     const { data: allItemTags } = await supabase
@@ -146,7 +148,8 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
         )}
 
         <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-          {items?.map((item: NewsItemProps & { categories?: { slug: string; name: string } | null }) => (
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {items?.map((item: any) => (
             <li key={item.id}>
               <NewsItem
                 {...item}
