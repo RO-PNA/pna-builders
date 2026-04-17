@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import HeroCarousel from "@/components/HeroCarousel";
 
 export const metadata: Metadata = {
   title: "Events | PNA",
@@ -62,15 +63,16 @@ const EVENTS: EventItem[] = [
     galleryUrls: ["/images/about/about_1.jpeg", "/images/about/about_2.jpg", "/images/about/about_3.png"],
   },
   {
-    slug: "pna-monthly-apr-2026",
-    title: "PNA Monthly — 4월 정기모임",
-    category: "meetup",
-    summary: "프로덕트 직군 동문 네트워킹 정기모임. AI 트렌드 공유 및 자유 네트워킹",
+    slug: "first-penguin-career-study",
+    title: "PNA 퍼스트펭귄 이직 스터디",
+    category: "study",
+    summary: "경험 정리 → 공고 분석 → 이력서/포트폴리오 → 면접 연습까지, 실제 지원으로 이어지는 실행형 이직 스터디",
     thumbnailUrl: "/images/about/about_2.jpg",
-    eventDate: "2026-04-25T19:00:00+09:00",
-    eventEndDate: "2026-04-25T21:00:00+09:00",
-    location: "서울 성수동",
-    isFree: true,
+    eventDate: "2026-04-11T14:00:00+09:00",
+    eventEndDate: "2026-05-23T17:00:00+09:00",
+    location: "신촌 스터디룸",
+    isFree: false,
+    price: "10만원 (100% 환급 가능)",
     registrationUrl: "https://forms.gle/example",
     status: "ongoing",
     isFeatured: true,
@@ -90,6 +92,80 @@ const EVENTS: EventItem[] = [
     price: "4만원 (정가 8만원)",
     registrationUrl: "https://forms.gle/example",
     status: "upcoming",
+    isFeatured: false,
+    reviewCount: 0,
+    galleryUrls: [],
+  },
+  {
+    slug: "uospn-yearend-2025",
+    title: "2025 UOSPN 송년회 — 1인 창업 시대, 모두의 바이브코딩",
+    category: "conference",
+    summary: "외부 연사 2인 초청 세미나 + 네트워킹 파티. 바이브코딩 6-Pager 제작기, AI 시대 기획 트렌드",
+    thumbnailUrl: null,
+    eventDate: "2025-12-06T15:30:00+09:00",
+    eventEndDate: "2025-12-06T20:00:00+09:00",
+    location: "마루360 (서울 강남구 역삼로 172)",
+    isFree: false,
+    price: "4만원 (저녁 포함)",
+    status: "ended",
+    isFeatured: false,
+    reviewCount: 0,
+    galleryUrls: [],
+  },
+  {
+    slug: "prototype-workshop-25-3q",
+    title: "AI 시대의 Prototype, 프로덕트 직무의 새 역할",
+    category: "workshop",
+    summary: "프로토타입 제작 역량과 AI 툴 활용 방안을 탐색하는 워크샵. 0→1 vs 1→10 단계별 접근",
+    thumbnailUrl: null,
+    eventDate: "2025-09-05T15:30:00+09:00",
+    eventEndDate: "2025-09-05T17:30:00+09:00",
+    location: "서울",
+    isFree: true,
+    status: "ended",
+    isFeatured: false,
+    reviewCount: 0,
+    galleryUrls: [],
+  },
+  {
+    slug: "seminar-25-2q",
+    title: "25-2분기 정기 세미나 — 현실 너머, 나의 고민을 그리는 여정",
+    category: "meetup",
+    summary: "네트워킹을 통한 커리어 개발, 사이드 프로젝트, 포트폴리오 제작 노하우 등 4인 발표",
+    thumbnailUrl: null,
+    eventDate: "2025-06-14T15:30:00+09:00",
+    eventEndDate: "2025-06-14T17:30:00+09:00",
+    location: "서울",
+    isFree: true,
+    status: "ended",
+    isFeatured: false,
+    reviewCount: 0,
+    galleryUrls: [],
+  },
+  {
+    slug: "social-25-1q",
+    title: "친목 모임",
+    category: "social",
+    summary: "UOSPN 멤버 간 자유 네트워킹 및 친목 모임",
+    thumbnailUrl: null,
+    eventDate: "2025-03-28T19:00:00+09:00",
+    location: "서울",
+    isFree: true,
+    status: "ended",
+    isFeatured: false,
+    reviewCount: 0,
+    galleryUrls: [],
+  },
+  {
+    slug: "first-meetup-yearend-2024",
+    title: "첫 오프라인 모임 - 송년회",
+    category: "social",
+    summary: "UOSPN 첫 번째 오프라인 모임. 동문 프로덕트 직군 네트워킹의 시작",
+    thumbnailUrl: null,
+    eventDate: "2024-12-14T15:00:00+09:00",
+    location: "서울",
+    isFree: true,
+    status: "ended",
     isFeatured: false,
     reviewCount: 0,
     galleryUrls: [],
@@ -196,54 +272,54 @@ function EventCard({ event, muted = false }: { event: EventItem; muted?: boolean
   );
 }
 
+function getStatusDisplay(status: EventStatus, eventDate: string): { label: string; color: string } {
+  if (status === "ended") {
+    return { label: "종료됨", color: "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400" };
+  }
+  if (status === "ongoing") {
+    return { label: "진행 중", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" };
+  }
+  const daysUntil = Math.ceil((new Date(eventDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  if (daysUntil <= 3) {
+    return { label: "마감 임박", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" };
+  }
+  return { label: "모집 중", color: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" };
+}
+
 export default function EventsPage() {
-  const featured = EVENTS.find((e) => e.isFeatured);
   const upcoming = EVENTS.filter((e) => e.status === "upcoming");
   const ongoing = EVENTS.filter((e) => e.status === "ongoing");
   const past = EVENTS.filter((e) => e.status === "ended");
 
+  const bannerPool = [
+    ...upcoming.sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()),
+    ...ongoing.sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()),
+    ...past.sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()),
+  ].slice(0, 3);
+
+  const carouselEvents = bannerPool.map((e) => {
+    const statusDisplay = getStatusDisplay(e.status, e.eventDate);
+    return {
+      slug: e.slug,
+      title: e.title,
+      category: e.category,
+      categoryLabel: CATEGORY_LABELS[e.category],
+      categoryColor: CATEGORY_COLORS[e.category],
+      summary: e.summary,
+      thumbnailUrl: e.thumbnailUrl,
+      eventDate: e.eventDate,
+      location: e.location,
+      isFree: e.isFree,
+      price: e.price,
+      statusLabel: statusDisplay.label,
+      statusColor: statusDisplay.color,
+    };
+  });
+
   return (
     <div>
-      {/* Hero Banner */}
-      {featured && (
-        <Link
-          href={`/events/${featured.slug}`}
-          className="group block relative rounded-2xl overflow-hidden mb-10"
-        >
-          <div className="relative aspect-[21/9] sm:aspect-[3/1] bg-gray-900">
-            {featured.thumbnailUrl && (
-              <Image
-                src={featured.thumbnailUrl}
-                alt={featured.title}
-                fill
-                className="object-cover opacity-60 group-hover:opacity-70 transition-opacity"
-                sizes="100vw"
-                priority
-              />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[featured.category]}`}>
-                  {CATEGORY_LABELS[featured.category]}
-                </span>
-                <StatusBadge status={featured.status} eventDate={featured.eventDate} />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">{featured.title}</h2>
-              <p className="text-sm text-gray-300 mb-3 line-clamp-2">{featured.summary}</p>
-              <div className="flex items-center gap-4 text-sm text-gray-300">
-                <span>{formatDate(featured.eventDate)} {formatTime(featured.eventDate)}</span>
-                <span>{featured.location}</span>
-                {featured.isFree ? (
-                  <span className="text-green-400">무료</span>
-                ) : (
-                  <span className="text-yellow-400">{featured.price || "유료"}</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </Link>
-      )}
+      {/* Hero Carousel */}
+      <HeroCarousel events={carouselEvents} />
 
       {/* Upcoming Events */}
       {upcoming.length > 0 && (
