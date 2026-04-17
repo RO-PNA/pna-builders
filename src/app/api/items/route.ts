@@ -21,28 +21,77 @@ async function extractTitle(url: string) {
     }
 }
 
+function toSlug(name: string): string {
+    return name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9가-힣ㄱ-ㅎㅏ-ㅣ\-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+}
+
 export async function POST(req: Request) {
-    const { url, summary, category } = await req.json()
-    const supabase = await createSupabaseServer() // Fixed: await createSupabaseServer
+    const { url, summary, category_id, tags } = await req.json()
+    const supabase = await createSupabaseServer()
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
     const title = await extractTitle(url)
 
-    const { error } = await supabase.from('items').insert({
+    const { data: item, error } = await supabase.from('items').insert({
         url,
         title,
         summary,
-        category,
+        category_id: category_id || null,
         created_by: user.id,
-        author: user.email?.split('@')[0] || 'anonymous', // We still need author text for display if not fetching from users table join
+        author: user.email?.split('@')[0] || 'anonymous',
         points: 1
-    })
+    }).select('id').single()
 
     if (error) {
         console.error('Submit Error:', error);
         return NextResponse.json({ error: error.message, details: error }, { status: 500 })
+    }
+
+    if (tags && Array.isArray(tags) && tags.length > 0 && item) {
+        const tagNames = tags.slice(0, 5) as string[]
+
+        for (const tagName of tagNames) {
+            const slug = toSlug(tagName)
+            if (!slug) continue
+
+            const { data: existing } = await supabase
+                .from('tags')
+                .select('id')
+                .eq('slug', slug)
+                .single()
+
+            let tagId: number
+
+            if (existing) {
+                tagId = existing.id
+                await supabase
+                    .from('tags')
+                    .update({ usage_count: (await supabase.from('tags').select('usage_count').eq('id', tagId).single()).data?.usage_count + 1 })
+                    .eq('id', tagId)
+            } else {
+                const { data: newTag, error: tagError } = await supabase
+                    .from('tags')
+                    .insert({ slug, name: tagName.trim(), usage_count: 1 })
+                    .select('id')
+                    .single()
+
+                if (tagError || !newTag) continue
+                tagId = newTag.id
+            }
+
+            await supabase.from('item_tags').insert({
+                item_id: item.id,
+                tag_id: tagId,
+            }).select()
+        }
     }
 
     return NextResponse.json({ ok: true })
