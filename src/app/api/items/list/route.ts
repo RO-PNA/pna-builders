@@ -5,7 +5,7 @@ const PAGE_SIZE = 20
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
-    const cursor = searchParams.get('cursor') // created_at of last item
+    const cursor = searchParams.get('cursor')
     const categorySlug = searchParams.get('category')
     const tagSlug = searchParams.get('tag')
 
@@ -35,12 +35,12 @@ export async function GET(request: NextRequest) {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query: any = supabase
+    // 아이템 쿼리 — 조인 없이 단독 조회로 정렬 보장
+    let query = supabase
         .from('items')
-        .select('*, categories(slug, name)')
+        .select('*')
         .order('created_at', { ascending: false })
-        .limit(PAGE_SIZE + 1) // +1 to detect hasMore
+        .limit(PAGE_SIZE + 1)
 
     if (cursor) {
         query = query.lt('created_at', cursor)
@@ -62,27 +62,36 @@ export async function GET(request: NextRequest) {
     const hasMore = items.length > PAGE_SIZE
     const pageItems = hasMore ? items.slice(0, PAGE_SIZE) : items
 
-    // fetch tags for items
-    const itemIds = pageItems.map((i: { id: number }) => i.id)
-    let itemTagsMap: Record<number, { slug: string; name: string }[]> = {}
-    if (itemIds.length > 0) {
-        const { data: allItemTags } = await supabase
-            .from('item_tags')
-            .select('item_id, tags(slug, name)')
-            .in('item_id', itemIds)
+    // 카테고리 + 태그 병렬 조회
+    const itemIds = pageItems.map(i => i.id)
+    const categoryIdSet = [...new Set(pageItems.map(i => i.category_id).filter(Boolean))]
 
-        if (allItemTags) {
-            for (const row of allItemTags) {
-                if (!itemTagsMap[row.item_id]) itemTagsMap[row.item_id] = []
-                const tag = row.tags as unknown as { slug: string; name: string } | null
-                if (tag) itemTagsMap[row.item_id].push(tag)
-            }
+    const [categoriesRes, itemTagsRes] = await Promise.all([
+        categoryIdSet.length > 0
+            ? supabase.from('categories').select('id, slug, name').in('id', categoryIdSet)
+            : Promise.resolve({ data: null }),
+        itemIds.length > 0
+            ? supabase.from('item_tags').select('item_id, tags(slug, name)').in('item_id', itemIds)
+            : Promise.resolve({ data: null }),
+    ])
+
+    const categoryMap: Record<number, { slug: string; name: string }> = {}
+    categoriesRes.data?.forEach((c: { id: number; slug: string; name: string }) => {
+        categoryMap[c.id] = { slug: c.slug, name: c.name }
+    })
+
+    const itemTagsMap: Record<number, { slug: string; name: string }[]> = {}
+    if (itemTagsRes.data) {
+        for (const row of itemTagsRes.data) {
+            if (!itemTagsMap[row.item_id]) itemTagsMap[row.item_id] = []
+            const tag = row.tags as unknown as { slug: string; name: string } | null
+            if (tag) itemTagsMap[row.item_id].push(tag)
         }
     }
 
-    const enriched = pageItems.map((item: { id: number; categories?: { slug: string; name: string } | null }) => ({
+    const enriched = pageItems.map(item => ({
         ...item,
-        categoryInfo: item.categories ?? undefined,
+        categoryInfo: item.category_id ? categoryMap[item.category_id] : undefined,
         tagInfos: itemTagsMap[item.id] ?? [],
     }))
 
