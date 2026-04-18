@@ -1,32 +1,41 @@
-import { createSupabaseServer } from "@/utils/supabase/server";
-import Link from "next/link";
-import KnowledgeViewToggle from "@/components/KnowledgeViewToggle";
-import OntologyGraph from "@/components/OntologyGraph";
-import KnowledgeListView from "@/components/KnowledgeListView";
+'use client';
 
-export const revalidate = 0;
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import KnowledgeViewToggle from '@/components/KnowledgeViewToggle';
+import OntologyGraph from '@/components/OntologyGraph';
+import KnowledgeListView from '@/components/KnowledgeListView';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+type Category = { id: number; slug: string; name: string };
+type Tag = { slug: string; name: string };
+type Comment = { id: number; content: string; author_name: string; created_at: string; item_id: number };
 
-export default async function Home({ searchParams }: { searchParams: SearchParams }) {
-  const params = await searchParams;
-  const view = typeof params.view === 'string' ? params.view : 'list';
+export default function Home() {
+  const [view, setView] = useState('list');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [popularTags, setPopularTags] = useState<Tag[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
 
-  const supabase = await createSupabaseServer();
-
-  const [categoriesRes, popularTagsRes, commentsRes] = await Promise.all([
-    supabase.from('categories').select('id, slug, name, parent_id, sort_order').is('parent_id', null).order('sort_order'),
-    supabase.from('tags').select('slug, name').order('usage_count', { ascending: false }).limit(10),
-    supabase.from('comments').select('id, content, author_name, created_at, item_id').order('created_at', { ascending: false }).limit(10),
-  ]);
-
-  const categories = categoriesRes.data ?? [];
-  const popularTags = popularTagsRes.data ?? [];
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/categories').then(r => r.ok ? r.json() : []),
+      fetch('/api/tags').then(r => r.ok ? r.json() : []),
+      fetch('/api/comments?limit=10').then(r => r.ok ? r.json() : []),
+    ]).then(([cats, tags, cmts]) => {
+      // categories API returns tree, flatten parents
+      const parents = Array.isArray(cats) ? cats.map((c: Category & { children?: Category[] }) => ({
+        id: c.id, slug: c.slug, name: c.name
+      })) : [];
+      setCategories(parents);
+      setPopularTags(Array.isArray(tags) ? tags : []);
+      setComments(Array.isArray(cmts) ? cmts : []);
+    });
+  }, []);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <KnowledgeViewToggle />
+        <KnowledgeViewToggle view={view} onViewChange={setView} />
         <Link href="/submit" className="bg-orange-500 text-white text-sm px-3 py-1.5 rounded hover:bg-orange-600">
           Submit
         </Link>
@@ -54,9 +63,9 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
               <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
                 최신 댓글
               </h2>
-              {commentsRes.data && commentsRes.data.length > 0 ? (
+              {comments.length > 0 ? (
                 <ul className="space-y-3">
-                  {commentsRes.data.map((c) => (
+                  {comments.map((c) => (
                     <li key={c.id}>
                       <Link href={`/item/${c.item_id}`} className="block group">
                         <p

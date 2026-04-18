@@ -3,21 +3,29 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
     const itemId = req.nextUrl.searchParams.get('itemId');
-    if (!itemId) {
-        return NextResponse.json({ error: 'itemId is required' }, { status: 400 });
-    }
+    const limit = parseInt(req.nextUrl.searchParams.get('limit') || '0');
 
     const supabase = await createSupabaseServer();
-    const { data, error } = await supabase
-        .from('comments')
-        .select('*')
-        .eq('item_id', itemId)
-        .order('created_at', { ascending: true });
 
-    if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    if (itemId) {
+        const { data, error } = await supabase
+            .from('comments')
+            .select('*')
+            .eq('item_id', itemId)
+            .order('created_at', { ascending: true });
+
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json(data);
     }
 
+    // 최신 댓글 (홈 사이드바용)
+    const { data, error } = await supabase
+        .from('comments')
+        .select('id, content, author_name, created_at, item_id')
+        .order('created_at', { ascending: false })
+        .limit(limit || 10);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data);
 }
 

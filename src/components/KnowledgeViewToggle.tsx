@@ -1,45 +1,33 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-
-export default function KnowledgeViewToggle() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const currentView = searchParams.get('view') || 'list';
-
-  function setView(view: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (view === 'list') {
-      params.delete('view');
-    } else {
-      params.set('view', view);
-    }
-    // 뷰 전환 시 카테고리·태그 필터 유지
-    const qs = params.toString();
-    router.push(qs ? `/?${qs}` : '/');
-  }
-
+export default function KnowledgeViewToggle({
+  view,
+  onViewChange,
+}: {
+  view: string;
+  onViewChange: (view: string) => void;
+}) {
   return (
     <div className="flex items-center gap-1 rounded-lg p-0.5" style={{ background: 'var(--surface-secondary)' }}>
       <button
-        onClick={() => setView('list')}
+        onClick={() => onViewChange('list')}
         className={`text-xs px-3 py-1 rounded-md transition-colors ${
-          currentView === 'list'
+          view === 'list'
             ? 'bg-orange-500 text-white'
             : 'hover:bg-gray-200 dark:hover:bg-gray-700'
         }`}
-        style={currentView !== 'list' ? { color: 'var(--text-secondary)' } : undefined}
+        style={view !== 'list' ? { color: 'var(--text-secondary)' } : undefined}
       >
         List
       </button>
       <button
-        onClick={() => setView('graph')}
+        onClick={() => onViewChange('graph')}
         className={`text-xs px-3 py-1 rounded-md transition-colors ${
-          currentView === 'graph'
+          view === 'graph'
             ? 'bg-orange-500 text-white'
             : 'hover:bg-gray-200 dark:hover:bg-gray-700'
         }`}
-        style={currentView !== 'graph' ? { color: 'var(--text-secondary)' } : undefined}
+        style={view !== 'graph' ? { color: 'var(--text-secondary)' } : undefined}
       >
         Graph
       </button>
