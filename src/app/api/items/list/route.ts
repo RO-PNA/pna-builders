@@ -5,7 +5,7 @@ const PAGE_SIZE = 20
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
-    const cursor = searchParams.get('cursor')
+    const cursorId = searchParams.get('cursorId') // id of last item
     const categorySlug = searchParams.get('category')
     const tagSlug = searchParams.get('tag')
 
@@ -35,15 +35,15 @@ export async function GET(request: NextRequest) {
         }
     }
 
-    // 아이템 쿼리 — 조인 없이 단독 조회로 정렬 보장
+    // id desc 정렬 — id는 유니크하므로 정렬·커서 모두 안정적
     let query = supabase
         .from('items')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
         .limit(PAGE_SIZE + 1)
 
-    if (cursor) {
-        query = query.lt('created_at', cursor)
+    if (cursorId) {
+        query = query.lt('id', parseInt(cursorId))
     }
     if (categoryIds) {
         query = query.in('category_id', categoryIds)
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     }))
 
     const nextCursor = hasMore && pageItems.length > 0
-        ? pageItems[pageItems.length - 1].created_at
+        ? String(pageItems[pageItems.length - 1].id)
         : null
 
     return NextResponse.json({ items: enriched, nextCursor })

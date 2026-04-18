@@ -25,7 +25,7 @@ export default function InfiniteItemList() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (cursorVal) params.set('cursor', cursorVal);
+      if (cursorVal) params.set('cursorId', cursorVal);
       if (category) params.set('category', category);
       if (tag) params.set('tag', tag);
 
