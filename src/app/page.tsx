@@ -1,9 +1,8 @@
 import { createSupabaseServer } from "@/utils/supabase/server";
 import Link from "next/link";
-import CategoryFilter from "@/components/CategoryFilter";
 import KnowledgeViewToggle from "@/components/KnowledgeViewToggle";
 import OntologyGraph from "@/components/OntologyGraph";
-import InfiniteItemList from "@/components/InfiniteItemList";
+import KnowledgeListView from "@/components/KnowledgeListView";
 
 export const revalidate = 0;
 
@@ -11,13 +10,10 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default async function Home({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
-  const categorySlug = typeof params.category === 'string' ? params.category : undefined;
-  const tagSlug = typeof params.tag === 'string' ? params.tag : undefined;
   const view = typeof params.view === 'string' ? params.view : 'list';
 
   const supabase = await createSupabaseServer();
 
-  // 카테고리 + 인기 태그 + 최신 댓글 병렬 조회
   const [categoriesRes, popularTagsRes, commentsRes] = await Promise.all([
     supabase.from('categories').select('id, slug, name, parent_id, sort_order').is('parent_id', null).order('sort_order'),
     supabase.from('tags').select('slug, name').order('usage_count', { ascending: false }).limit(10),
@@ -25,7 +21,7 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
   ]);
 
   const categories = categoriesRes.data ?? [];
-  const popularTags = popularTagsRes.data;
+  const popularTags = popularTagsRes.data ?? [];
 
   return (
     <div>
@@ -41,37 +37,10 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
       ) : (
         <div className="flex gap-6">
           <div className="flex-1 min-w-0">
-            <CategoryFilter
+            <KnowledgeListView
               categories={categories}
-              activeCategorySlug={categorySlug}
-              activeTagSlug={tagSlug}
+              popularTags={popularTags}
             />
-
-            {popularTags && popularTags.length > 0 && !tagSlug && (
-              <div className="flex flex-wrap gap-1.5 mb-4">
-                {popularTags.map((t) => (
-                  <Link
-                    key={t.slug}
-                    href={`/?tag=${t.slug}`}
-                    className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-colors"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    #{t.name}
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            {tagSlug && (
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  태그: <span className="font-semibold text-orange-500">#{tagSlug}</span>
-                </span>
-                <Link href="/" className="text-xs text-gray-400 hover:text-orange-500">✕ 해제</Link>
-              </div>
-            )}
-
-            <InfiniteItemList />
           </div>
 
           <aside className="hidden lg:block w-64 shrink-0">
