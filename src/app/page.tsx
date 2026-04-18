@@ -1,9 +1,9 @@
-import NewsItem from "@/components/NewsItem";
 import { createSupabaseServer } from "@/utils/supabase/server";
 import Link from "next/link";
 import CategoryFilter from "@/components/CategoryFilter";
 import KnowledgeViewToggle from "@/components/KnowledgeViewToggle";
 import OntologyGraph from "@/components/OntologyGraph";
+import InfiniteItemList from "@/components/InfiniteItemList";
 
 export const revalidate = 0;
 
@@ -17,76 +17,18 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
 
   const supabase = await createSupabaseServer();
 
-  // ── 1단계: 독립 쿼리 병렬 실행 ──
-  const [categoriesRes, catLookupRes, tagLookupRes, commentsRes] = await Promise.all([
+  // 카테고리 + 인기 태그 + 최신 댓글 병렬 조회
+  const [categoriesRes, popularTagsRes, commentsRes] = await Promise.all([
     supabase.from('categories').select('id, slug, name, parent_id, sort_order').is('parent_id', null).order('sort_order'),
-    categorySlug
-      ? supabase.from('categories').select('id').eq('slug', categorySlug).single()
-      : Promise.resolve({ data: null }),
-    tagSlug
-      ? supabase.from('tags').select('id').eq('slug', tagSlug).single()
-      : Promise.resolve({ data: null }),
+    supabase.from('tags').select('slug, name').order('usage_count', { ascending: false }).limit(10),
     supabase.from('comments').select('id, content, author_name, created_at, item_id').order('created_at', { ascending: false }).limit(10),
   ]);
 
   const categories = categoriesRes.data ?? [];
-  const categoryId = catLookupRes.data?.id as number | undefined;
-  const tagId = tagLookupRes.data?.id as number | undefined;
-
-  // ── 2단계: 필터 의존 쿼리 병렬 실행 ──
-  const [childCatsRes, tagItemsRes, popularTagsRes] = await Promise.all([
-    categoryId
-      ? supabase.from('categories').select('id').eq('parent_id', categoryId)
-      : Promise.resolve({ data: null }),
-    tagId
-      ? supabase.from('item_tags').select('item_id').eq('tag_id', tagId)
-      : Promise.resolve({ data: null }),
-    supabase.from('tags').select('slug, name').order('usage_count', { ascending: false }).limit(10),
-  ]);
-
   const popularTags = popularTagsRes.data;
-
-  // ── 3단계: 아이템 쿼리 ──
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let itemsQuery: any = supabase
-    .from('items')
-    .select('*, categories(slug, name)')
-    .order('created_at', { ascending: false });
-
-  if (categoryId) {
-    const ids = [categoryId, ...(childCatsRes.data?.map((c: { id: number }) => c.id) ?? [])];
-    itemsQuery = itemsQuery.in('category_id', ids);
-  }
-
-  if (tagId) {
-    const itemIds = tagItemsRes.data?.map((it: { item_id: number }) => it.item_id) ?? [];
-    itemsQuery = itemsQuery.in('id', itemIds.length > 0 ? itemIds : [-1]);
-  }
-
-  const { data: items } = await itemsQuery;
-
-  // ── 4단계: 아이템별 태그 조회 ──
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const itemIdsForTags = items?.map((i: any) => i.id) ?? [];
-  let itemTagsMap: Record<number, { slug: string; name: string }[]> = {};
-  if (itemIdsForTags.length > 0) {
-    const { data: allItemTags } = await supabase
-      .from('item_tags')
-      .select('item_id, tags(slug, name)')
-      .in('item_id', itemIdsForTags);
-
-    if (allItemTags) {
-      for (const row of allItemTags) {
-        if (!itemTagsMap[row.item_id]) itemTagsMap[row.item_id] = [];
-        const tag = row.tags as unknown as { slug: string; name: string } | null;
-        if (tag) itemTagsMap[row.item_id].push(tag);
-      }
-    }
-  }
 
   return (
     <div>
-      {/* Header: View Toggle + Submit */}
       <div className="flex items-center justify-between mb-4">
         <KnowledgeViewToggle />
         <Link href="/submit" className="bg-orange-500 text-white text-sm px-3 py-1.5 rounded hover:bg-orange-600">
@@ -95,10 +37,8 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
       </div>
 
       {view === 'graph' ? (
-        /* ── Graph View ── */
         <OntologyGraph />
       ) : (
-        /* ── List View ── */
         <div className="flex gap-6">
           <div className="flex-1 min-w-0">
             <CategoryFilter
@@ -131,25 +71,7 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
               </div>
             )}
 
-            <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {items?.map((item: any) => (
-                <li key={item.id}>
-                  <NewsItem
-                    {...item}
-                    categoryInfo={item.categories ?? undefined}
-                    tagInfos={itemTagsMap[item.id]}
-                  />
-                </li>
-              ))}
-              {(!items || items.length === 0) && (
-                <div className="p-4 text-gray-400">
-                  {categorySlug || tagSlug
-                    ? '해당 필터에 맞는 항목이 없습니다.'
-                    : 'No items found.'}
-                </div>
-              )}
-            </ul>
+            <InfiniteItemList />
           </div>
 
           <aside className="hidden lg:block w-64 shrink-0">
