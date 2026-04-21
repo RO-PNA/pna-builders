@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import NewsItem, { type NewsItemProps } from './NewsItem';
-import Link from 'next/link';
 
 type Category = {
   id: number;
   slug: string;
   name: string;
+  children?: { slug: string }[];
 };
 
 type Tag = {
@@ -30,19 +30,23 @@ export default function KnowledgeListView({
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [activeTag, setActiveTag] = useState<string>('');
   const [items, setItems] = useState<EnrichedItem[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const observerRef = useRef<HTMLDivElement>(null);
 
-  const fetchItems = useCallback(async (cursorVal: string | null, reset: boolean) => {
+  const cursorRef = useRef<string | null>(null);
+  const hasMoreRef = useRef(true);
+  const loadingRef = useRef(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const fetchItems = useCallback(async (reset: boolean) => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     try {
       const params = new URLSearchParams();
+      const cursorVal = reset ? null : cursorRef.current;
       if (cursorVal) params.set('cursorId', cursorVal);
-      if (activeCategory) params.set('category', activeCategory);
-      if (activeTag) params.set('tag', activeTag);
 
       const res = await fetch(`/api/items/list?${params}`);
       if (!res.ok) return;
@@ -51,50 +55,68 @@ export default function KnowledgeListView({
       if (reset) {
         setItems(data.items);
       } else {
-        setItems(prev => [...prev, ...data.items]);
+        setItems((prev) => [...prev, ...data.items]);
       }
-      setCursor(data.nextCursor);
+      cursorRef.current = data.nextCursor;
+      hasMoreRef.current = !!data.nextCursor;
       setHasMore(!!data.nextCursor);
     } catch {
       // ignore
     } finally {
+      loadingRef.current = false;
       setLoading(false);
       setInitialLoading(false);
     }
-  }, [activeCategory, activeTag]);
+  }, []);
 
-  // Reset on filter change
   useEffect(() => {
-    setItems([]);
-    setCursor(null);
-    setHasMore(true);
-    setInitialLoading(true);
-    fetchItems(null, true);
+    fetchItems(true);
   }, [fetchItems]);
 
-  // Intersection observer
   useEffect(() => {
-    if (!observerRef.current || !hasMore || loading) return;
-
+    if (!sentinelRef.current) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          fetchItems(cursor, false);
+        if (entries[0].isIntersecting && hasMoreRef.current && !loadingRef.current) {
+          fetchItems(false);
         }
       },
-      { threshold: 0.1 }
+      { rootMargin: '300px 0px' }
     );
-
-    observer.observe(observerRef.current);
+    observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [cursor, hasMore, loading, fetchItems]);
+  }, [initialLoading, hasMore, fetchItems]);
+
+  const categoryMatchMap = useMemo(() => {
+    const m: Record<string, Set<string>> = {};
+    for (const c of categories) {
+      const set = new Set<string>([c.slug]);
+      for (const ch of c.children ?? []) set.add(ch.slug);
+      m[c.slug] = set;
+    }
+    return m;
+  }, [categories]);
+
+  const filteredItems = useMemo(() => {
+    if (!activeCategory && !activeTag) return items;
+    return items.filter((item) => {
+      if (activeCategory) {
+        const matchSet = categoryMatchMap[activeCategory];
+        if (!matchSet || !item.categoryInfo || !matchSet.has(item.categoryInfo.slug)) return false;
+      }
+      if (activeTag) {
+        if (!item.tagInfos?.some((t) => t.slug === activeTag)) return false;
+      }
+      return true;
+    });
+  }, [items, activeCategory, activeTag, categoryMatchMap]);
 
   function selectCategory(slug: string) {
-    setActiveCategory(prev => prev === slug ? '' : slug);
+    setActiveCategory((prev) => (prev === slug ? '' : slug));
   }
 
   function selectTag(slug: string) {
-    setActiveTag(prev => prev === slug ? '' : slug);
+    setActiveTag((prev) => (prev === slug ? '' : slug));
   }
 
   return (
@@ -164,7 +186,7 @@ export default function KnowledgeListView({
       ) : (
         <>
           <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <li key={item.id}>
                 <NewsItem
                   {...item}
@@ -173,7 +195,7 @@ export default function KnowledgeListView({
                 />
               </li>
             ))}
-            {items.length === 0 && (
+            {filteredItems.length === 0 && (
               <div className="p-4 text-gray-400">
                 {activeCategory || activeTag
                   ? '해당 필터에 맞는 항목이 없습니다.'
@@ -183,7 +205,7 @@ export default function KnowledgeListView({
           </ul>
 
           {hasMore && (
-            <div ref={observerRef} className="flex justify-center py-6">
+            <div ref={sentinelRef} className="flex justify-center py-6">
               {loading && (
                 <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
               )}

@@ -6,7 +6,7 @@ import KnowledgeViewToggle from '@/components/KnowledgeViewToggle';
 import OntologyGraph from '@/components/OntologyGraph';
 import KnowledgeListView from '@/components/KnowledgeListView';
 
-type Category = { id: number; slug: string; name: string };
+type Category = { id: number; slug: string; name: string; children?: { slug: string }[] };
 type Tag = { slug: string; name: string };
 type Comment = { id: number; content: string; author_name: string; created_at: string; item_id: number };
 
@@ -22,9 +22,12 @@ export default function Home() {
       fetch('/api/tags').then(r => r.ok ? r.json() : []),
       fetch('/api/comments?limit=10').then(r => r.ok ? r.json() : []),
     ]).then(([cats, tags, cmts]) => {
-      // categories API returns tree, flatten parents
+      // categories API returns tree — keep parents + children slugs for client-side filter matching
       const parents = Array.isArray(cats) ? cats.map((c: Category & { children?: Category[] }) => ({
-        id: c.id, slug: c.slug, name: c.name
+        id: c.id,
+        slug: c.slug,
+        name: c.name,
+        children: (c.children ?? []).map((ch) => ({ slug: ch.slug })),
       })) : [];
       setCategories(parents);
       setPopularTags(Array.isArray(tags) ? tags : []);
